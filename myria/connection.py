@@ -14,6 +14,9 @@ GET = 'GET'
 PUT = 'PUT'
 POST = 'POST'
 
+# httplib debug level
+HTTPLIB_DEBUG_LEVEL = 0
+
 class MyriaConnection(object):
     """Contains a connection the Myria REST server."""
 
@@ -57,6 +60,7 @@ class MyriaConnection(object):
             rest_port = port or rest_config[1]
 
         self._connection = httplib.HTTPConnection(hostname, port)
+        self._connection.set_debuglevel(HTTPLIB_DEBUG_LEVEL)
         self._connection.connect()
 
     def _make_request(self, method, url, body=None, headers=None):
@@ -81,7 +85,7 @@ class MyriaConnection(object):
 
     def datasets(self):
         """Return a list of the datasets that exist"""
-        return self._make_request(GET, "/datasets")
+        return self._make_request(GET, "/dataset")
 
     def dataset(self, relation_key):
         """Return information about the specified relation"""
@@ -116,4 +120,4 @@ class MyriaConnection(object):
             'schema': schema,
             'data': data})
 
-        self._make_request(POST, '/dataset', body)
+        return self._make_request(POST, '/dataset', body)
