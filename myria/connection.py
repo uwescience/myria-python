@@ -132,3 +132,13 @@ class MyriaConnection(object):
 
         body = json.dumps(query)
         return self._make_request(POST, '/query', body)
+
+    def get_query_status(self, query_id):
+        """Get the status of a submitted query.
+        
+        Args:
+            query_id: the id of a submitted query
+        """
+
+        resource_path = '/query/query-%d' % int(query_id)
+        return self._make_request(GET, resource_path)
