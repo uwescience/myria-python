@@ -69,7 +69,7 @@ class MyriaConnection(object):
 
         self._connection.request(method, url, headers=headers, body=body)
         response = self._connection.getresponse()
-        if response.status == httplib.OK or response.status == httplib.CREATED:
+        if response.status in [httplib.OK, httplib.CREATED, httplib.ACCEPTED]:
             return json.load(response)
         else:
             raise MyriaError('Error %d (%s): %s'
@@ -121,3 +121,14 @@ class MyriaConnection(object):
             'data': data})
 
         return self._make_request(POST, '/dataset', body)
+
+    def submit_query(self, query):
+        """Submit the query to Myria, and return the status including the URL
+        to be polled.
+        
+        Args:
+            query: a Myria physical plan as a Python object.
+        """
+
+        body = json.dumps(query)
+        return self._make_request(POST, '/query', body)
