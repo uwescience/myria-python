@@ -64,20 +64,27 @@ class MyriaConnection(object):
         self._connection.connect()
 
     def _make_request(self, method, url, body=None, headers=None):
-        if headers is None:
-            headers = self._DEFAULT_HEADERS
+        try:
+            if headers is None:
+                headers = self._DEFAULT_HEADERS
 
-        self._connection.request(method, url, headers=headers, body=body)
-        response = self._connection.getresponse()
-        if response.status in [httplib.OK, httplib.CREATED, httplib.ACCEPTED]:
-            return json.load(response)
-        else:
-            raise MyriaError('Error %d (%s): %s'
-                    % (response.status, response.reason, response.read()))
+            self._connection.request(method, url, headers=headers, body=body)
+            response = self._connection.getresponse()
+            if response.status in [httplib.OK, httplib.CREATED, httplib.ACCEPTED]:
+                return json.load(response)
+            else:
+                raise MyriaError('Error %d (%s): %s'
+                        % (response.status, response.reason, response.read()))
+        except Exception as e:
+            raise MyriaError(e)
 
     def workers(self):
         """Return a dictionary of the workers"""
         return self._make_request(GET, "/workers")
+
+    def workers_alive(self):
+        """Return a list of the workers that are alive"""
+        return self._make_request(GET, "/workers/alive")
 
     def worker(self, worker_id):
         """Return information about the specified worker"""
