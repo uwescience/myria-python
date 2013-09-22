@@ -150,3 +150,10 @@ class MyriaConnection(object):
 
         resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
+
+    def queries(self):
+        """Get information about all submitted queries.
+        """
+
+        resource_path = '/query'
+        return self._make_request(GET, resource_path)
