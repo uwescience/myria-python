@@ -63,6 +63,8 @@ class MyriaConnection(object):
         self._connection = httplib.HTTPConnection(hostname, port)
         self._connection.set_debuglevel(HTTPLIB_DEBUG_LEVEL)
         self._connection.connect()
+        # get workers just to make sure the connection is alive
+        self.workers()
 
     def _make_request(self, method, url, body=None, headers=None):
         try:
