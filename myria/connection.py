@@ -32,7 +32,7 @@ class MyriaConnection(object):
         if deployment is None:
             return None
         config = ConfigParser.RawConfigParser(allow_no_value=True)
-        config.readfp(args.deployment_cfg)
+        config.readfp(deployment)
         master = config.get('master', '0')
         hostname = master[:master.index(':')]
         port = int(config.get('deployment', 'rest_port'))
@@ -57,8 +57,8 @@ class MyriaConnection(object):
         # port with any provided values from deployment.
         rest_config = self._parse_deployment(deployment)
         if rest_config is not None:
-            rest_hostname = hostname or rest_config[0]
-            rest_port = port or rest_config[1]
+            hostname = hostname or rest_config[0]
+            port = port or rest_config[1]
 
         self._connection = httplib.HTTPConnection(hostname, port)
         self._connection.set_debuglevel(HTTPLIB_DEBUG_LEVEL)
@@ -142,6 +142,16 @@ class MyriaConnection(object):
 
         body = json.dumps(query)
         return self._make_request(POST, '/query', body)
+
+    def validate_query(self, query):
+        """Submit the query to Myria for validation only.
+        
+        Args:
+            query: a Myria physical plan as a Python object.
+        """
+
+        body = json.dumps(query)
+        return self._make_request(POST, '/query/validate', body)
 
     def get_query_status(self, query_id):
         """Get the status of a submitted query.
