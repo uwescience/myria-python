@@ -105,6 +105,14 @@ class MyriaConnection(object):
                  urllib2.quote(relation_key['relation_name']))
         return self._make_request(GET, url)
 
+    def download_dataset(self, relation_key):
+        """Download the data in the dataset as json"""
+        url = "/dataset/user-%s/program-%s/relation-%s/data?format=json" % \
+                (urllib2.quote(relation_key['user_name']),
+                 urllib2.quote(relation_key['program_name']),
+                 urllib2.quote(relation_key['relation_name']))
+        return self._make_request(GET, url)
+
     def upload_fp(self, relation_key, schema, fp):
         """Upload the data in the supplied fp to the specified user and
         relation.
