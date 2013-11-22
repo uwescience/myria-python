@@ -171,6 +171,20 @@ class MyriaConnection(object):
         resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
 
+    def get_profile_logs(self, query_id, fragment_id, worker_id=None):
+        """Get the profiling logs for a query execution
+        """
+
+        if worker_id:
+            pattern = '/query/query-{query_id}?qf={fragment_id}&worker={worker_id}'
+            resource_path = pattern.format(
+                query_id=int(query_id), fragment_id=fragment_id,
+                worker_id=worker_id)
+        else:
+            resource_path = '/query/query-{query_id}?qf={fragment_id}'.format(
+                query_id=int(query_id), fragment_id=fragment_id)
+        return self._make_request(GET, resource_path)
+
     def queries(self):
         """Get information about all submitted queries.
         """
