@@ -180,12 +180,12 @@ class MyriaConnection(object):
         """
 
         if worker_id:
-            pattern = '/query/query-{query_id}/qf={fragment_id}/worker={worker_id}'
+            pattern = '/query/query-{query_id}/fragment-{fragment_id}/worker-{worker_id}'
             resource_path = pattern.format(
                 query_id=int(query_id), fragment_id=fragment_id,
                 worker_id=worker_id)
         else:
-            resource_path = '/query/query-{query_id}/qf={fragment_id}'.format(
+            resource_path = '/query/query-{query_id}/fragment={fragment_id}'.format(
                 query_id=int(query_id), fragment_id=fragment_id)
         return self._make_request(GET, resource_path)
 
