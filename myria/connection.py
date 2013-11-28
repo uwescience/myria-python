@@ -1,6 +1,5 @@
 import base64
 import ConfigParser
-from collections import OrderedDict
 import httplib
 import json
 import urllib2
@@ -17,6 +16,7 @@ POST = 'POST'
 
 # httplib debug level
 HTTPLIB_DEBUG_LEVEL = 0
+
 
 class MyriaConnection(object):
     """Contains a connection the Myria REST server."""
@@ -175,19 +175,19 @@ class MyriaConnection(object):
         status = self.get_query_status(query_id)
         return len(status['physical_plan']['fragments'])
 
-    def get_profile_logs(self, query_id, fragment_id, worker_id=None):
+    def get_profile_logs(self, query_id, fragment_id=None, worker_id=None):
         """Get the profiling logs for a query execution
         """
 
+        url = '/query/query-{query_id}'.format(query_id=query_id)
+
+        if fragment_id:
+            url += '/fragment-{fragment_id}'.format(fragment_id=fragment_id)
+
         if worker_id:
-            pattern = '/query/query-{query_id}/fragment-{fragment_id}/worker-{worker_id}'
-            resource_path = pattern.format(
-                query_id=int(query_id), fragment_id=fragment_id,
-                worker_id=worker_id)
-        else:
-            resource_path = '/query/query-{query_id}/fragment={fragment_id}'.format(
-                query_id=int(query_id), fragment_id=fragment_id)
-        return self._make_request(GET, resource_path)
+            url += '/worker-{worker_id}'.format(worker_id=worker_id)
+
+        return self._make_request(GET, url)
 
     def queries(self):
         """Get information about all submitted queries.
