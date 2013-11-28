@@ -3,6 +3,7 @@ import ConfigParser
 import httplib
 import json
 import urllib2
+import traceback
 
 from .errors import MyriaError
 
@@ -41,7 +42,8 @@ class MyriaConnection(object):
     def __init__(self,
                  deployment=None,
                  hostname=None,
-                 port=None):
+                 port=None,
+                 timeout=None):
         """Initializes a connection to the Myria REST server.
 
         Args:
@@ -60,7 +62,7 @@ class MyriaConnection(object):
             hostname = hostname or rest_config[0]
             port = port or rest_config[1]
 
-        self._connection = httplib.HTTPConnection(hostname, port)
+        self._connection = httplib.HTTPConnection(hostname, port, timeout=timeout)
         self._connection.set_debuglevel(HTTPLIB_DEBUG_LEVEL)
         self._connection.connect()
         # get workers just to make sure the connection is alive
@@ -79,7 +81,7 @@ class MyriaConnection(object):
                 raise MyriaError('Error %d (%s): %s'
                         % (response.status, response.reason, response.read()))
         except Exception as e:
-            raise MyriaError(e)
+            raise MyriaError(traceback.format_exc())
 
     def workers(self):
         """Return a dictionary of the workers"""
