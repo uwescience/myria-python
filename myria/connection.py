@@ -136,7 +136,10 @@ class MyriaConnection(object):
         body = json.dumps({
             'relation_key': relation_key,
             'schema': schema,
-            'data': data})
+            'source': {
+                'data_type': 'Bytes',
+                'bytes': data
+            }})
 
         return self._make_request(POST, '/dataset', body)
 
