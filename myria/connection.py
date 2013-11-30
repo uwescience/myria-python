@@ -175,7 +175,10 @@ class MyriaConnection(object):
 
     def get_fragment_ids(self, query_id):
         status = self.get_query_status(query_id)
-        return range(len(status['physical_plan']['fragments']))
+        if 'fragments' in status['physical_plan']:
+            return range(len(status['physical_plan']['fragments']))
+        else:
+            return []
 
     def get_profile_logs(self, query_id, fragment_id=None, worker_id=None):
         """Get the profiling logs for a query execution
