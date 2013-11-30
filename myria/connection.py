@@ -173,9 +173,9 @@ class MyriaConnection(object):
         resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
 
-    def get_number_fragments(self, query_id):
+    def get_fragment_ids(self, query_id):
         status = self.get_query_status(query_id)
-        return len(status['physical_plan']['fragments'])
+        return range(len(status['physical_plan']['fragments']))
 
     def get_profile_logs(self, query_id, fragment_id=None, worker_id=None):
         """Get the profiling logs for a query execution
