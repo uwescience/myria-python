@@ -4,6 +4,7 @@ import httplib
 import json
 import urllib2
 import traceback
+import logging
 
 from .errors import MyriaError
 
@@ -69,6 +70,7 @@ class MyriaConnection(object):
         self.workers()
 
     def _make_request(self, method, url, body=None, headers=None):
+        logging.info("{method} request to {url}".format(method=method, url=url))
         try:
             if headers is None:
                 headers = self._DEFAULT_HEADERS
