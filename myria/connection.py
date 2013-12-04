@@ -192,7 +192,7 @@ class MyriaConnection(object):
             url += '/fragment-{fragment_id}'.format(fragment_id=fragment_id)
 
         if worker_id:
-            url += '/worker-{worker_id}'.format(worker_id=worker_id)
+            url += '?worker_id={worker_id}'.format(worker_id=worker_id)
 
         return self._make_request(GET, url)
 
