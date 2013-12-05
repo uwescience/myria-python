@@ -178,7 +178,8 @@ class MyriaConnection(object):
     def get_fragment_ids(self, query_id):
         status = self.get_query_status(query_id)
         if 'fragments' in status['physical_plan']:
-            return range(len(status['physical_plan']['fragments']))
+            return [x['fragment_index']
+                    for x in status['physical_plan']['fragments']]
         else:
             return []
 
