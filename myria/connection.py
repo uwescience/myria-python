@@ -175,11 +175,15 @@ class MyriaConnection(object):
         resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
 
-    def get_fragment_ids(self, query_id):
+    def get_fragment_ids(self, query_id, worker_id):
         status = self.get_query_status(query_id)
         if 'fragments' in status['physical_plan']:
-            return [x['fragment_index']
-                    for x in status['physical_plan']['fragments']]
+            fids = []
+            for fragment in status['physical_plan']['fragments']:
+                logging.info(map(int, fragment['workers']))
+                if int(worker_id) in map(int, fragment['workers']):
+                    fids.append(fragment['fragment_index'])
+            return fids
         else:
             return []
 
