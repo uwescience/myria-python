@@ -3,6 +3,7 @@ import ConfigParser
 from collections import OrderedDict
 import httplib
 import json
+from time import sleep
 import urllib2
 
 from .errors import MyriaError
@@ -65,6 +66,31 @@ class MyriaConnection(object):
         self._connection.connect()
         # get workers just to make sure the connection is alive
         self.workers()
+
+    def _finish_async_request(self, method, url, body=None, headers=None):
+        try:
+            if headers is None:
+                headers = self._DEFAULT_HEADERS
+
+            while True:
+                self._connection.request(method, url, headers=headers, body=body)
+                response = self._connection.getresponse()
+                if response.status in [httplib.OK, httplib.CREATED]:
+                    return json.load(response)
+                elif response.status in [httplib.ACCEPTED]:
+                    # Get the new URL to poll, etc.
+                    url = response.getheader('Location')
+                    method = GET
+                    body = None
+                    # Read and ignore the body
+                    response.read()
+                    # Sleep 100 ms before re-issuing the request
+                    sleep(0.1)
+                else:
+                    raise MyriaError('Error %d (%s): %s'
+                            % (response.status, response.reason, response.read()))
+        except Exception as e:
+            raise MyriaError(e)
 
     def _make_request(self, method, url, body=None, headers=None):
         try:
@@ -153,6 +179,16 @@ class MyriaConnection(object):
 
         body = json.dumps(query)
         return self._make_request(POST, '/query', body)
+
+    def execute_query(self, query):
+        """Submit the query to Myria, and poll its status until it finishes.
+        
+        Args:
+            query: a Myria physical plan as a Python object.
+        """
+
+        body = json.dumps(query)
+        return self._finish_async_request(POST, '/query', body)
 
     def validate_query(self, query):
         """Submit the query to Myria for validation only.
