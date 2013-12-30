@@ -90,6 +90,8 @@ class MyriaConnection(object):
                     raise MyriaError('Error %d (%s): %s'
                             % (response.status, response.reason, response.read()))
         except Exception as e:
+            if isinstance(e, MyriaError):
+                raise
             raise MyriaError(e)
 
     def _make_request(self, method, url, body=None, headers=None):
@@ -105,6 +107,8 @@ class MyriaConnection(object):
                 raise MyriaError('Error %d (%s): %s'
                         % (response.status, response.reason, response.read()))
         except Exception as e:
+            if isinstance(e, MyriaError):
+                raise
             raise MyriaError(e)
 
     def workers(self):
