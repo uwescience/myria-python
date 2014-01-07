@@ -4,6 +4,7 @@ from collections import OrderedDict
 import httplib
 import json
 from time import sleep
+import urllib
 import urllib2
 
 from .errors import MyriaError
@@ -11,7 +12,7 @@ from .errors import MyriaError
 __all__ = ['MyriaConnection']
 
 # String constants used in forming requests
-JSON = 'application/JSON'
+JSON = 'application/json'
 GET = 'GET'
 PUT = 'PUT'
 POST = 'POST'
@@ -214,9 +215,21 @@ class MyriaConnection(object):
         resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
 
-    def queries(self):
+    def queries(self, limit=None, max_=None):
         """Get information about all submitted queries.
+
+        Args:
+            limit: the maximum number of query status results to return.
+            max_: the maximum query ID to return.
         """
 
         resource_path = '/query'
+        args = {}
+        if limit is not None:
+            args['limit'] = limit
+        if max_ is not None:
+            args['max'] = max_
+        query_string = urllib.urlencode(args)
+        if query_string:
+            resource_path = '{}?{}'.format(resource_path, query_string)
         return self._make_request(GET, resource_path)
