@@ -2,6 +2,8 @@ import base64
 import ConfigParser
 import httplib
 import json
+from time import sleep
+import urllib
 import urllib2
 import traceback
 import logging
@@ -11,7 +13,7 @@ from .errors import MyriaError
 __all__ = ['MyriaConnection']
 
 # String constants used in forming requests
-JSON = 'application/JSON'
+JSON = 'application/json'
 GET = 'GET'
 PUT = 'PUT'
 POST = 'POST'
@@ -69,6 +71,33 @@ class MyriaConnection(object):
         # get workers just to make sure the connection is alive
         self.workers()
 
+    def _finish_async_request(self, method, url, body=None, headers=None):
+        try:
+            if headers is None:
+                headers = self._DEFAULT_HEADERS
+
+            while True:
+                self._connection.request(method, url, headers=headers, body=body)
+                response = self._connection.getresponse()
+                if response.status in [httplib.OK, httplib.CREATED]:
+                    return json.load(response)
+                elif response.status in [httplib.ACCEPTED]:
+                    # Get the new URL to poll, etc.
+                    url = response.getheader('Location')
+                    method = GET
+                    body = None
+                    # Read and ignore the body
+                    response.read()
+                    # Sleep 100 ms before re-issuing the request
+                    sleep(0.1)
+                else:
+                    raise MyriaError('Error %d (%s): %s'
+                            % (response.status, response.reason, response.read()))
+        except Exception as e:
+            if isinstance(e, MyriaError):
+                raise
+            raise MyriaError(e)
+
     def _make_request(self, method, url, body=None, headers=None):
         logging.info("{method} request to {url}".format(method=method, url=url))
         try:
@@ -86,7 +115,9 @@ class MyriaConnection(object):
                 raise MyriaError('Error %d (%s): %s'
                         % (response.status, response.reason, response.read()))
         except Exception as e:
-            raise MyriaError(traceback.format_exc())
+            if isinstance(e, MyriaError):
+                raise
+            raise MyriaError(e)
 
     def workers(self):
         """Return a dictionary of the workers"""
@@ -143,7 +174,10 @@ class MyriaConnection(object):
         body = json.dumps({
             'relation_key': relation_key,
             'schema': schema,
-            'data': data})
+            'source': {
+                'data_type': 'Bytes',
+                'bytes': data
+            }})
 
         return self._make_request(POST, '/dataset', body)
 
@@ -157,6 +191,16 @@ class MyriaConnection(object):
 
         body = json.dumps(query)
         return self._make_request(POST, '/query', body)
+
+    def execute_query(self, query):
+        """Submit the query to Myria, and poll its status until it finishes.
+        
+        Args:
+            query: a Myria physical plan as a Python object.
+        """
+
+        body = json.dumps(query)
+        return self._finish_async_request(POST, '/query', body)
 
     def validate_query(self, query):
         """Submit the query to Myria for validation only.
@@ -178,35 +222,21 @@ class MyriaConnection(object):
         resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
 
-    def get_fragment_ids(self, query_id, worker_id):
-        status = self.get_query_status(query_id)
-        if 'fragments' in status['physical_plan']:
-            fids = []
-            for fragment in status['physical_plan']['fragments']:
-                logging.info(map(int, fragment['workers']))
-                if int(worker_id) in map(int, fragment['workers']):
-                    fids.append(fragment['fragment_index'])
-            return fids
-        else:
-            return []
-
-    def get_profile_logs(self, query_id, fragment_id=None, worker_id=None):
-        """Get the profiling logs for a query execution
-        """
-
-        url = '/query/query-{query_id}'.format(query_id=query_id)
-
-        if fragment_id is not None:
-            url += '/fragment-{fragment_id}'.format(fragment_id=fragment_id)
-
-        if worker_id is not None:
-            url += '?worker_id={worker_id}'.format(worker_id=worker_id)
-
-        return self._make_request(GET, url)
-
-    def queries(self):
+    def queries(self, limit=None, max_=None):
         """Get information about all submitted queries.
+
+        Args:
+            limit: the maximum number of query status results to return.
+            max_: the maximum query ID to return.
         """
 
         resource_path = '/query'
+        args = {}
+        if limit is not None:
+            args['limit'] = limit
+        if max_ is not None:
+            args['max'] = max_
+        query_string = urllib.urlencode(args)
+        if query_string:
+            resource_path = '{}?{}'.format(resource_path, query_string)
         return self._make_request(GET, resource_path)
