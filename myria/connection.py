@@ -5,7 +5,6 @@ import json
 from time import sleep
 import urllib
 import urllib2
-import traceback
 import logging
 
 from .errors import MyriaError
@@ -221,6 +220,32 @@ class MyriaConnection(object):
 
         resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
+
+    def get_fragment_ids(self, query_id, worker_id):
+        status = self.get_query_status(query_id)
+        if 'fragments' in status['physical_plan']:
+            fids = []
+            for fragment in status['physical_plan']['fragments']:
+                logging.info(map(int, fragment['workers']))
+                if int(worker_id) in map(int, fragment['workers']):
+                    fids.append(fragment['fragment_index'])
+            return fids
+        else:
+            return []
+
+    def get_profile_logs(self, query_id, fragment_id=None, worker_id=None):
+        """Get the profiling logs for a query execution
+        """
+
+        url = '/query/query-{query_id}'.format(query_id=query_id)
+
+        if fragment_id is not None:
+            url += '/fragment-{fragment_id}'.format(fragment_id=fragment_id)
+
+        if worker_id is not None:
+            url += '?worker_id={worker_id}'.format(worker_id=worker_id)
+
+        return self._make_request(GET, url)
 
     def queries(self, limit=None, max_=None):
         """Get information about all submitted queries.
