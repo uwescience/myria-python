@@ -78,7 +78,10 @@ class MyriaConnection(object):
             self._connection.request(method, url, headers=headers, body=body)
             response = self._connection.getresponse()
             if response.status in [httplib.OK, httplib.CREATED, httplib.ACCEPTED]:
-                return json.load(response)
+                try:
+                    return json.load(response)
+                except ValueError, e:
+                    raise MyriaError('Error %s. Response: "%s"' % (e, response.read()))
             else:
                 raise MyriaError('Error %d (%s): %s'
                         % (response.status, response.reason, response.read()))
