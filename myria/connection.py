@@ -56,7 +56,7 @@ class MyriaConnection(object):
                 deployment is provided.
             port: The port of the REST server. May be overwritten if deployment
                 is provided.
-            timeout: The timout for the connection to myria.
+            timeout: The timeout for the connection to myria.
         """
         # Parse the deployment file and, if present, override the hostname and
         # port with any provided values from deployment.
