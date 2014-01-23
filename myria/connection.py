@@ -233,7 +233,6 @@ class MyriaConnection(object):
         if 'fragments' in status['physical_plan']:
             fids = []
             for fragment in status['physical_plan']['fragments']:
-                logging.info(map(int, fragment['workers']))
                 if int(worker_id) in map(int, fragment['workers']):
                     fids.append(fragment['fragment_index'])
             return fids
