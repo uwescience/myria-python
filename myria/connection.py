@@ -56,6 +56,7 @@ class MyriaConnection(object):
                 deployment is provided.
             port: The port of the REST server. May be overwritten if deployment
                 is provided.
+            timeout: The timout for the connection to myria.
         """
         # Parse the deployment file and, if present, override the hostname and
         # port with any provided values from deployment.
@@ -109,7 +110,7 @@ class MyriaConnection(object):
                 try:
                     return json.load(response)
                 except ValueError, e:
-                    raise MyriaError('Error %s. Response: "%s"' % (e, response.read()))
+                    raise MyriaError('Error deserializing JSON: %s. Response: "%s"' % (e, response.read()))
             else:
                 raise MyriaError('Error %d (%s): %s'
                         % (response.status, response.reason, response.read()))
@@ -222,6 +223,12 @@ class MyriaConnection(object):
         return self._make_request(GET, resource_path)
 
     def get_fragment_ids(self, query_id, worker_id):
+        """Get the number of fragments in a query plan.
+
+        Args:
+            query_id: the id of a submitted query
+            worker_id: the id of a worker
+        """
         status = self.get_query_status(query_id)
         if 'fragments' in status['physical_plan']:
             fids = []
@@ -235,6 +242,11 @@ class MyriaConnection(object):
 
     def get_profile_logs(self, query_id, fragment_id=None, worker_id=None):
         """Get the profiling logs for a query execution
+
+        Args:
+            query_id: the id of a submitted query
+            fragment_id: the id of a fragment in the query plan
+            worker_id: the id of a worker
         """
 
         url = '/query/query-{query_id}'.format(query_id=query_id)
