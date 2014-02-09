@@ -138,17 +138,17 @@ class MyriaConnection(object):
     def dataset(self, relation_key):
         """Return information about the specified relation"""
         url = "/dataset/user-%s/program-%s/relation-%s" % \
-                (urllib2.quote(relation_key['user_name']),
-                 urllib2.quote(relation_key['program_name']),
-                 urllib2.quote(relation_key['relation_name']))
+                (urllib2.quote(relation_key['userName']),
+                 urllib2.quote(relation_key['programName']),
+                 urllib2.quote(relation_key['relationName']))
         return self._make_request(GET, url)
 
     def download_dataset(self, relation_key):
         """Download the data in the dataset as json"""
         url = "/dataset/user-%s/program-%s/relation-%s/data?format=json" % \
-                (urllib2.quote(relation_key['user_name']),
-                 urllib2.quote(relation_key['program_name']),
-                 urllib2.quote(relation_key['relation_name']))
+                (urllib2.quote(relation_key['userName']),
+                 urllib2.quote(relation_key['programName']),
+                 urllib2.quote(relation_key['relationName']))
         return self._make_request(GET, url)
 
     def upload_fp(self, relation_key, schema, fp):
@@ -163,19 +163,19 @@ class MyriaConnection(object):
 
         # Clone the relation key and schema to ensure they don't contain
         # extraneous fields.
-        relation_key = {'user_name': relation_key['user_name'],
-                        'program_name': relation_key['program_name'],
-                        'relation_name': relation_key['relation_name']}
-        schema = {'column_types': schema['column_types'],
-                  'column_names': schema['column_names']}
+        relation_key = {'userName': relation_key['userName'],
+                        'programName': relation_key['programName'],
+                        'relationName': relation_key['relationName']}
+        schema = {'columnTypes': schema['columnTypes'],
+                  'columnNames': schema['columnNames']}
 
         data = base64.b64encode(fp.read())
 
         body = json.dumps({
-            'relation_key': relation_key,
+            'relationKey': relation_key,
             'schema': schema,
             'source': {
-                'data_type': 'Bytes',
+                'dataType': 'Bytes',
                 'bytes': data
             }})
 
@@ -230,11 +230,11 @@ class MyriaConnection(object):
             worker_id: the id of a worker
         """
         status = self.get_query_status(query_id)
-        if 'fragments' in status['physical_plan']:
+        if 'fragments' in status['physicalPlan']:
             fids = []
-            for fragment in status['physical_plan']['fragments']:
+            for fragment in status['physicalPlan']['fragments']:
                 if int(worker_id) in map(int, fragment['workers']):
-                    fids.append(fragment['fragment_index'])
+                    fids.append(fragment['fragmentIndex'])
             return fids
         else:
             return []
