@@ -27,7 +27,7 @@ class MyriaConnection(object):
     _DEFAULT_HEADERS = {
         'Accept': JSON,
         'Content-Type': JSON
-        }
+    }
 
     @staticmethod
     def _parse_deployment(deployment):
@@ -65,7 +65,8 @@ class MyriaConnection(object):
             hostname = hostname or rest_config[0]
             port = port or rest_config[1]
 
-        self._connection = httplib.HTTPConnection(hostname, port, timeout=timeout)
+        self._connection = httplib.HTTPConnection(hostname, port,
+                                                  timeout=timeout)
         self._connection.set_debuglevel(HTTPLIB_DEBUG_LEVEL)
         self._connection.connect()
         # get workers just to make sure the connection is alive
@@ -77,7 +78,8 @@ class MyriaConnection(object):
                 headers = self._DEFAULT_HEADERS
 
             while True:
-                self._connection.request(method, url, headers=headers, body=body)
+                self._connection.request(method, url, headers=headers,
+                                         body=body)
                 response = self._connection.getresponse()
                 if response.status in [httplib.OK, httplib.CREATED]:
                     return json.load(response)
@@ -91,29 +93,37 @@ class MyriaConnection(object):
                     # Sleep 100 ms before re-issuing the request
                     sleep(0.1)
                 else:
-                    raise MyriaError('Error %d (%s): %s'
-                            % (response.status, response.reason, response.read()))
+                    msg = 'Error %d (%s): %s' % (response.status,
+                                                 response.reason,
+                                                 response.read())
+                    raise MyriaError(msg)
+
         except Exception as e:
             if isinstance(e, MyriaError):
                 raise
             raise MyriaError(e)
 
     def _make_request(self, method, url, body=None, headers=None):
-        logging.info("{method} request to {url}".format(method=method, url=url))
+        logging.info("{method} request to {url}".format(method=method, url=url))  # noqa
         try:
             if headers is None:
                 headers = self._DEFAULT_HEADERS
 
             self._connection.request(method, url, headers=headers, body=body)
             response = self._connection.getresponse()
-            if response.status in [httplib.OK, httplib.CREATED, httplib.ACCEPTED]:
+            if response.status in [httplib.OK, httplib.CREATED, httplib.ACCEPTED]:  # noqa
                 try:
                     return json.load(response)
                 except ValueError, e:
-                    raise MyriaError('Error deserializing JSON: %s. Response: "%s"' % (e, response.read()))
+                    msg = ('Error deserializing JSON: %s. Response: "%s"' %
+                           (e, response.read()))
+                    raise MyriaError(msg)
             else:
-                raise MyriaError('Error %d (%s): %s'
-                        % (response.status, response.reason, response.read()))
+                msg = 'Error %d (%s): %s' % (response.status,
+                                             response.reason,
+                                             response.read())
+                raise MyriaError(msg)
+
         except Exception as e:
             if isinstance(e, MyriaError):
                 raise
@@ -137,24 +147,24 @@ class MyriaConnection(object):
 
     def dataset(self, relation_key):
         """Return information about the specified relation"""
-        url = "/dataset/user-%s/program-%s/relation-%s" % \
-                (urllib2.quote(relation_key['userName']),
-                 urllib2.quote(relation_key['programName']),
-                 urllib2.quote(relation_key['relationName']))
+        url = "/dataset/user-%s/program-%s/relation-%s" \
+            % (urllib2.quote(relation_key['userName']),
+               urllib2.quote(relation_key['programName']),
+               urllib2.quote(relation_key['relationName']))
         return self._make_request(GET, url)
 
     def download_dataset(self, relation_key):
         """Download the data in the dataset as json"""
         url = "/dataset/user-%s/program-%s/relation-%s/data?format=json" % \
-                (urllib2.quote(relation_key['userName']),
-                 urllib2.quote(relation_key['programName']),
-                 urllib2.quote(relation_key['relationName']))
+            (urllib2.quote(relation_key['userName']),
+             urllib2.quote(relation_key['programName']),
+             urllib2.quote(relation_key['relationName']))
         return self._make_request(GET, url)
 
     def upload_fp(self, relation_key, schema, fp):
         """Upload the data in the supplied fp to the specified user and
         relation.
-        
+
         Args:
             relation_key: A dictionary containing the destination relation key.
             schema: A dictionary containing the schema,
@@ -184,7 +194,7 @@ class MyriaConnection(object):
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
         to be polled.
-        
+
         Args:
             query: a Myria physical plan as a Python object.
         """
@@ -194,7 +204,7 @@ class MyriaConnection(object):
 
     def execute_query(self, query):
         """Submit the query to Myria, and poll its status until it finishes.
-        
+
         Args:
             query: a Myria physical plan as a Python object.
         """
@@ -204,7 +214,7 @@ class MyriaConnection(object):
 
     def validate_query(self, query):
         """Submit the query to Myria for validation only.
-        
+
         Args:
             query: a Myria physical plan as a Python object.
         """
@@ -214,7 +224,7 @@ class MyriaConnection(object):
 
     def get_query_status(self, query_id):
         """Get the status of a submitted query.
-        
+
         Args:
             query_id: the id of a submitted query
         """
