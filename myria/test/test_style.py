@@ -12,6 +12,7 @@ def check_output_and_print_stderr(args):
         print >> sys.stderr, e.output
         raise
 
+
 class StyleTest(unittest.TestCase):
     def test_flake8(self):
         "run flake8 with the right arguments and ensure all files pass"
