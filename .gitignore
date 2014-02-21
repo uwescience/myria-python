@@ -4,3 +4,5 @@
 *.pyc
 *.swp
 build/
+dist/
+myria_python.egg-info/
