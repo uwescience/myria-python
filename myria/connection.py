@@ -16,7 +16,7 @@ PUT = 'PUT'
 POST = 'POST'
 
 # Enable or configure logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.WARN)
 
 
 class MyriaConnection(object):
