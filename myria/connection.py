@@ -82,7 +82,7 @@ class MyriaConnection(object):
                     method = GET
                     body = None
                     # Read and ignore the body
-                    #response.read()
+                    # response.read()
                     # Sleep 100 ms before re-issuing the request
                     sleep(0.1)
                 else:
@@ -166,16 +166,16 @@ class MyriaConnection(object):
     def dataset(self, relation_key):
         """Return information about the specified relation"""
         return self._wrap_get('/dataset/user-{}/program-{}/relation-{}'.format(
-            relation_key['user_name'],
-            relation_key['program_name'],
-            relation_key['relation_name']))
+            relation_key['userName'],
+            relation_key['programName'],
+            relation_key['relationName']))
 
     def download_dataset(self, relation_key):
         """Download the data in the dataset as json"""
         return self._wrap_get('/dataset/user-{}/program-{}/relation-{}'.format(
-                              relation_key['user_name'],
-                              relation_key['program_name'],
-                              relation_key['relation_name']),
+                              relation_key['userName'],
+                              relation_key['programName'],
+                              relation_key['relationName']),
                               params={'format': 'json'})
 
     def upload_fp(self, relation_key, schema, fp):
