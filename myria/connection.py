@@ -72,6 +72,8 @@ class MyriaConnection(object):
     def _finish_async_request(self, method, url, body=None, headers=None):
         try:
             while True:
+                if '://' not in url:
+                    url = self._url_start + url
                 req = self._session.request(method, url, headers=headers,
                                             data=body)
                 if req.status_code in [200, 201]:
@@ -95,6 +97,8 @@ class MyriaConnection(object):
 
     def _make_request(self, method, url, body=None, headers=None):
         try:
+            if '://' not in url:
+                url = self._url_start + url
             response = self._session.request(method, url, headers=headers,
                                              data=body)
             if response.status_code in [200, 201, 202]:
@@ -118,7 +122,9 @@ class MyriaConnection(object):
         if accepted is None:
             accepted = []
 
-        r = self._session.get(self._url_start + selector)
+        if '://' not in selector:
+            selector = self._url_start + selector
+        r = self._session.get(selector)
         if r.status_code in status:
             return r.json()
         elif r.status_code in accepted:
@@ -137,8 +143,9 @@ class MyriaConnection(object):
             if accepted is None:
                 accepted = []
 
-        r = self._session.post(self._url_start + selector, data=data,
-                               params=params)
+        if '://' not in selector:
+            selector = self._url_start + selector
+        r = self._session.post(selector, data=data, params=params)
         if r.status_code in status:
             if r.headers['Location']:
                 return self._wrap_get(r.headers['Location'], status=status,
@@ -206,7 +213,7 @@ class MyriaConnection(object):
                 'bytes': data
             }})
 
-        return self._make_request(POST, self._url_start + '/dataset', body)
+        return self._make_request(POST, '/dataset', body)
 
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
@@ -216,7 +223,8 @@ class MyriaConnection(object):
             query: a Myria physical plan as a Python object.
         """
 
-        return self._wrap_post('/query', data=query)
+        body = json.dumps(query)
+        return self._wrap_post('/query', data=body)
 
     def execute_query(self, query):
         """Submit the query to Myria, and poll its status until it finishes.
@@ -226,8 +234,7 @@ class MyriaConnection(object):
         """
 
         body = json.dumps(query)
-        return self._finish_async_request(POST, self._url_start + '/query',
-                                          body)
+        return self._finish_async_request(POST, '/query', body)
 
     def validate_query(self, query):
         """Submit the query to Myria for validation only.
@@ -237,8 +244,7 @@ class MyriaConnection(object):
         """
 
         body = json.dumps(query)
-        return self._make_request(POST, self._url_start + '/query/validate',
-                                  body)
+        return self._make_request(POST, '/query/validate', body)
 
     def get_query_status(self, query_id):
         """Get the status of a submitted query.
@@ -247,7 +253,7 @@ class MyriaConnection(object):
             query_id: the id of a submitted query
         """
 
-        resource_path = self._url_start + '/query/query-%d' % int(query_id)
+        resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
 
     def get_fragment_ids(self, query_id, worker_id):
@@ -276,8 +282,7 @@ class MyriaConnection(object):
             worker_id: the id of a worker
         """
 
-        url = (self._url_start
-               + '/query/query-{query_id}'.format(query_id=query_id))
+        url = '/query/query-{query_id}'.format(query_id=query_id)
 
         if fragment_id is not None:
             url += '/fragment-{fragment_id}'.format(fragment_id=fragment_id)
@@ -295,7 +300,7 @@ class MyriaConnection(object):
             max_: the maximum query ID to return.
         """
 
-        resource_path = self._url_start + '/query'
+        resource_path = '/query'
         args = {}
         if limit is not None:
             args['limit'] = limit
