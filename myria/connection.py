@@ -2,7 +2,6 @@ import base64
 import ConfigParser
 import json
 from time import sleep
-import logging
 import requests
 
 from .errors import MyriaError
@@ -266,26 +265,6 @@ class MyriaConnection(object):
             return fids
         else:
             return []
-
-    def get_profile_logs(self, query_id, fragment_id=None, worker_id=None):
-        """Get the profiling logs for a query execution
-
-        Args:
-            query_id: the id of a submitted query
-            fragment_id: the id of a fragment in the query plan
-            worker_id: the id of a worker
-        """
-
-        url = (self._url_start
-               + '/query/query-{query_id}'.format(query_id=query_id))
-
-        if fragment_id is not None:
-            url += '/fragment-{fragment_id}'.format(fragment_id=fragment_id)
-
-        if worker_id is not None:
-            url += '?workerId={worker_id}'.format(worker_id=worker_id)
-
-        return self._make_request(GET, url)
 
     def queries(self, limit=None, max_=None):
         """Get information about all submitted queries.
