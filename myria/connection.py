@@ -301,7 +301,7 @@ class MyriaConnection(object):
         resource_path = '/logs/sent?queryId=%d' % int(query_id)
         if fragment_id is not None:
             resource_path += '&fragmentId=%d' % int(fragment_id)
-        response = self._make_request(GET, resource_path, force_json=False)
+        response = self._make_request(GET, resource_path, accept=CSV)
         return csv.reader(response)
 
     def get_profiling_log(self, query_id, fragment_id=None):
