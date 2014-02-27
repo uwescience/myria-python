@@ -1,0 +1,16 @@
+# Deployment configuration
+[deployment]
+path = /tmp/myria
+name = twoNodeLocalParallel
+dbms = sqlite
+# Uncomment to set the maximum heap size of the Java processes
+#max_heap_size=-Xmx2g
+rest_port = 8753
+
+# Compute nodes configuration
+[master]
+0 = localhost:8001
+
+[workers]
+1 = localhost:9001
+2 = localhost:9002

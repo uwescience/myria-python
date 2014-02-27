@@ -1,11 +1,9 @@
 import base64
 import ConfigParser
-import httplib
 import json
 from time import sleep
-import urllib
-import urllib2
 import logging
+import requests
 
 from .errors import MyriaError
 
@@ -17,8 +15,8 @@ GET = 'GET'
 PUT = 'PUT'
 POST = 'POST'
 
-# httplib debug level
-HTTPLIB_DEBUG_LEVEL = 0
+# Enable or configure logging
+# logging.basicConfig(level=logging.WARN)
 
 
 class MyriaConnection(object):
@@ -65,101 +63,127 @@ class MyriaConnection(object):
             hostname = hostname or rest_config[0]
             port = port or rest_config[1]
 
-        self._connection = httplib.HTTPConnection(hostname, port,
-                                                  timeout=timeout)
-        self._connection.set_debuglevel(HTTPLIB_DEBUG_LEVEL)
-        self._connection.connect()
+        self._url_start = 'http://{}:{}'.format(hostname, port)
+        self._session = requests.Session()
+        self._session.headers.update(self._DEFAULT_HEADERS)
         # get workers just to make sure the connection is alive
         self.workers()
 
     def _finish_async_request(self, method, url, body=None, headers=None):
         try:
-            if headers is None:
-                headers = self._DEFAULT_HEADERS
-
             while True:
-                self._connection.request(method, url, headers=headers,
-                                         body=body)
-                response = self._connection.getresponse()
-                if response.status in [httplib.OK, httplib.CREATED]:
-                    return json.load(response)
-                elif response.status in [httplib.ACCEPTED]:
+                if '://' not in url:
+                    url = self._url_start + url
+                req = self._session.request(method, url, headers=headers,
+                                            data=body)
+                if req.status_code in [200, 201]:
+                    return req.json()
+                elif req.status_code in [202]:
                     # Get the new URL to poll, etc.
-                    url = response.getheader('Location')
+                    url = req.headers['Location']
                     method = GET
                     body = None
                     # Read and ignore the body
-                    response.read()
+                    # response.read()
                     # Sleep 100 ms before re-issuing the request
                     sleep(0.1)
                 else:
-                    msg = 'Error %d (%s): %s' % (response.status,
-                                                 response.reason,
-                                                 response.read())
-                    raise MyriaError(msg)
-
+                    raise MyriaError('Error %d: %s'
+                                     % (req.status_code, req.text))
         except Exception as e:
             if isinstance(e, MyriaError):
                 raise
             raise MyriaError(e)
 
     def _make_request(self, method, url, body=None, headers=None):
-        logging.info("{method} request to {url}".format(method=method, url=url))  # noqa
         try:
-            if headers is None:
-                headers = self._DEFAULT_HEADERS
-
-            self._connection.request(method, url, headers=headers, body=body)
-            response = self._connection.getresponse()
-            if response.status in [httplib.OK, httplib.CREATED, httplib.ACCEPTED]:  # noqa
+            if '://' not in url:
+                url = self._url_start + url
+            response = self._session.request(method, url, headers=headers,
+                                             data=body)
+            if response.status_code in [200, 201, 202]:
                 try:
-                    return json.load(response)
+                    return response.json()
                 except ValueError, e:
-                    msg = ('Error deserializing JSON: %s. Response: "%s"' %
-                           (e, response.read()))
+                    msg = ('Error deserializing JSON: %s. Response: "%s"'
+                           % (e, response.text))
                     raise MyriaError(msg)
             else:
-                msg = 'Error %d (%s): %s' % (response.status,
-                                             response.reason,
-                                             response.read())
-                raise MyriaError(msg)
-
+                raise MyriaError('Error %d: %s'
+                                 % (response.status_code, response.text))
         except Exception as e:
             if isinstance(e, MyriaError):
                 raise
             raise MyriaError(e)
 
+    def _wrap_get(self, selector, params=None, status=None, accepted=None):
+        if status is None:
+            status = [200]
+        if accepted is None:
+            accepted = []
+
+        if '://' not in selector:
+            selector = self._url_start + selector
+        r = self._session.get(selector)
+        if r.status_code in status:
+            return r.json()
+        elif r.status_code in accepted:
+            return self._wrap_get(selector, params=params, status=status,
+                                  accepted=accepted)
+        else:
+            raise MyriaError(r)
+
+    def _wrap_post(self, selector, data=None, params=None, status=None,
+                   accepted=None):
+        if status is None:
+            status = [201, 202]
+            if accepted is None:
+                accepted = [202]
+        else:
+            if accepted is None:
+                accepted = []
+
+        if '://' not in selector:
+            selector = self._url_start + selector
+        r = self._session.post(selector, data=data, params=params)
+        if r.status_code in status:
+            if r.headers['Location']:
+                return self._wrap_get(r.headers['Location'], status=status,
+                                      accepted=accepted)
+            return r.json()
+        else:
+            raise MyriaError(r)
+
     def workers(self):
         """Return a dictionary of the workers"""
-        return self._make_request(GET, "/workers")
+        return self._wrap_get('/workers')
 
     def workers_alive(self):
         """Return a list of the workers that are alive"""
-        return self._make_request(GET, "/workers/alive")
+        return self._wrap_get('/workers/alive')
 
     def worker(self, worker_id):
         """Return information about the specified worker"""
-        return self._make_request(GET, "/worker/worker-%d" % worker_id)
+        return self._wrap_get('/workers/worker-{}'.format(worker_id))
 
     def datasets(self):
         """Return a list of the datasets that exist"""
-        return self._make_request(GET, "/dataset")
+        return self._wrap_get('/dataset')
 
     def dataset(self, relation_key):
         """Return information about the specified relation"""
-        url = "/dataset/user-%s/program-%s/relation-%s" \
-            % (urllib2.quote(relation_key['userName']),
-               urllib2.quote(relation_key['programName']),
-               urllib2.quote(relation_key['relationName']))
-        return self._make_request(GET, url)
+        return self._wrap_get('/dataset/user-{}/program-{}/relation-{}'.format(
+            relation_key['userName'],
+            relation_key['programName'],
+            relation_key['relationName']))
 
     def download_dataset(self, relation_key):
         """Download the data in the dataset as json"""
-        url = "/dataset/user-%s/program-%s/relation-%s/data?format=json" % \
-            (urllib2.quote(relation_key['userName']),
-             urllib2.quote(relation_key['programName']),
-             urllib2.quote(relation_key['relationName']))
-        return self._make_request(GET, url)
+        return self._wrap_get('/dataset/user-{}/program-{}/relation-{}'.format(
+                              relation_key['userName'],
+                              relation_key['programName'],
+                              relation_key['relationName']),
+                              params={'format': 'json'})
 
     def upload_fp(self, relation_key, schema, fp):
         """Upload the data in the supplied fp to the specified user and
@@ -200,7 +224,7 @@ class MyriaConnection(object):
         """
 
         body = json.dumps(query)
-        return self._make_request(POST, '/query', body)
+        return self._wrap_post('/query', data=body)
 
     def execute_query(self, query):
         """Submit the query to Myria, and poll its status until it finishes.
@@ -282,7 +306,4 @@ class MyriaConnection(object):
             args['limit'] = limit
         if max_ is not None:
             args['max'] = max_
-        query_string = urllib.urlencode(args)
-        if query_string:
-            resource_path = '{}?{}'.format(resource_path, query_string)
-        return self._make_request(GET, resource_path)
+        return self._make_request(GET, resource_path, args)

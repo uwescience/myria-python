@@ -1,4 +1,8 @@
 .DS_Store
+.coverage
+.noseids
 *.pyc
 *.swp
 build/
+dist/
+myria_python.egg-info/

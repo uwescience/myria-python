@@ -4,6 +4,15 @@ Errors and Exceptions
 These are custom errors and exceptions for Myria API calls.
 """
 
+import requests
+
 
 class MyriaError(Exception):
-    pass
+    def __init__(self, err=None):
+        if isinstance(err, requests.Response):
+            msg = 'Error {} ({})'.format(err.status_code, err.reason)
+            if err.text:
+                msg = '{}: {}'.format(msg, err.text)
+            Exception.__init__(self, msg)
+        else:
+            Exception.__init__(self, err)

@@ -12,6 +12,7 @@ def check_output_and_print_stderr(args):
         print >> sys.stderr, e.output
         raise
 
+
 class StyleTest(unittest.TestCase):
     def test_flake8(self):
         "run flake8 with the right arguments and ensure all files pass"
@@ -20,3 +21,8 @@ class StyleTest(unittest.TestCase):
     def test_pylint(self):
         "run pylint -E to catch obvious errors"
         check_output_and_print_stderr(['pylint', '-E', 'myria'])
+
+    def test_errcatch(self):
+        "make sure that we get an exception if the command does not exit 0"
+        with self.assertRaises(subprocess.CalledProcessError):
+            check_output_and_print_stderr(['false'])
