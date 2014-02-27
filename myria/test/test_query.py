@@ -1,12 +1,7 @@
 from httmock import urlmatch, HTTMock
-import json
+from json import dumps as jstr
 import unittest
 from myria import MyriaConnection
-
-
-def jstr(obj):
-    """The JSON string representation of the object"""
-    return json.dumps(obj)
 
 
 def query():
