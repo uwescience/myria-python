@@ -16,7 +16,7 @@ def query():
             'fragments': []}
 
 
-def query_status(query, query_id=17, status='OK'):
+def query_status(query, query_id=17, status='SUCCESS'):
     return {'url': 'http://localhost:8753/query/query-%d' % query_id,
             'queryId': query_id,
             'rawQuery': query['rawQuery'],
@@ -31,16 +31,27 @@ def query_status(query, query_id=17, status='OK'):
 
 @urlmatch(netloc=r'localhost:8753')
 def local_mock(url, request):
+    global query_counter
     if url.path == '/workers':
         return jstr({'1': 'localhost:9001', '2': 'localhost:9002'})
     elif url.path == '/query':
         body = query_status(query(), 17, 'ACCEPTED')
         headers = {'Location': 'http://localhost:8753/query/query-17'}
+        query_counter = 2
         return {'status_code': 202, 'content': body, 'headers': headers}
     elif url.path == '/query/query-17':
-        body = query_status(query(), 17, 'OK')
+        if query_counter == 0:
+            status = 'SUCCESS'
+            status_code = 201
+        else:
+            status = 'ACCEPTED'
+            status_code = 202
+            query_counter -= 1
+        body = query_status(query(), 17, status)
         headers = {'Location': 'http://localhost:8753/query/query-17'}
-        return {'status_code': 201, 'content': body, 'headers': headers}
+        return {'status_code': status_code,
+                'content': body,
+                'headers': headers}
     elif url.path == '/query/validate':
         return request.body
 
@@ -57,7 +68,9 @@ class TestQuery(unittest.TestCase):
         q = query()
         with HTTMock(local_mock):
             status = self.connection.submit_query(q)
-            self.assertEquals(status, query_status(q))
+            global query_counter
+            self.assertEquals(status, query_status(q, status='ACCEPTED'))
+            self.assertEquals(query_counter, 1)
 
     def test_execute(self):
         q = query()
