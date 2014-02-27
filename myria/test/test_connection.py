@@ -1,6 +1,12 @@
-import StringIO
+from httmock import urlmatch, HTTMock
+import json
 import unittest
 from myria import MyriaConnection
+
+
+@urlmatch(netloc=r'localhost:8753', path="/workers")
+def worker_mock(url, request):
+    return json.dumps({'1': 'localhost:9001', '2': 'localhost:9002'})
 
 
 class TestDeployment(unittest.TestCase):
@@ -8,28 +14,16 @@ class TestDeployment(unittest.TestCase):
         assert MyriaConnection._parse_deployment(None) is None
 
     def test_deployment_file(self):
-        deploy_file = StringIO.StringIO()
-        deploy_file.write("""# Deployment configuration
-[deployment]
-path = /tmp/myria
-name = twoNodeLocalParallel
-dbms = sqlite
-# Uncomment to set the maximum heap size of the Java processes
-#max_heap_size=-Xmx2g
-rest_port = 8753
+        with open('myria/test/deployment.cfg.local') as deploy_file:
+            hostname, port = MyriaConnection._parse_deployment(deploy_file)
+            self.assertEqual(hostname, 'localhost')
+            self.assertEqual(port, 8753)
 
-# Compute nodes configuration
-[master]
-0 = localhost:8001
+    def test_deploy_local(self):
+        with HTTMock(worker_mock):
+            with open('myria/test/deployment.cfg.local') as deploy_file:
+                connection = MyriaConnection(deploy_file)
+            assert connection is not None
 
-[workers]
-1 = localhost:9001
-2 = localhost:9002
-""")
-        deploy_file.seek(0)
-
-        hostname, port = MyriaConnection._parse_deployment(deploy_file)
-        self.assertEqual(hostname, 'localhost')
-        self.assertEqual(port, 8753)
-
-        deploy_file.close()
+            self.assertEquals(connection.workers(),
+                              {'1': 'localhost:9001', '2': 'localhost:9002'})
