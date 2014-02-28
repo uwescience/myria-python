@@ -6,14 +6,17 @@ from myria import MyriaConnection
 @urlmatch(netloc=r'localhost:8753')
 def local_mock(url, request):
     print url
-    if url.path == '/logs/sent':
+    if url.path == '/workers':
+        return {'status_code': 200, 'content': {'1': 'localhost:9001',
+                                                '2': 'localhost:9002'}}
+    elif url.path == '/logs/sent':
         body = 'foo,bar\nbaz,ban'
         return {'status_code': 200, 'content': body}
 
     return None
 
 
-class TestQuery(unittest.TestCase):
+class TestLogs(unittest.TestCase):
     def __init__(self, args):
         with HTTMock(local_mock):
             self.connection = MyriaConnection(hostname='localhost', port=8753)
