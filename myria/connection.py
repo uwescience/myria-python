@@ -1,8 +1,10 @@
 import base64
 import ConfigParser
 import json
+import csv
 from time import sleep
 import logging
+
 import requests
 
 from .errors import MyriaError
@@ -11,12 +13,13 @@ __all__ = ['MyriaConnection']
 
 # String constants used in forming requests
 JSON = 'application/json'
+CSV = 'text/plain'
 GET = 'GET'
 PUT = 'PUT'
 POST = 'POST'
 
 # Enable or configure logging
-# logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.WARN)
 
 
 class MyriaConnection(object):
@@ -69,18 +72,26 @@ class MyriaConnection(object):
         # get workers just to make sure the connection is alive
         self.workers()
 
-    def _finish_async_request(self, method, url, body=None, headers=None):
+    def _finish_async_request(self, method, url, body=None, accept=JSON):
+        headers = {
+            'Accept': accept
+        }
         try:
             while True:
                 if '://' not in url:
                     url = self._url_start + url
-                req = self._session.request(method, url, headers=headers,
-                                            data=body)
-                if req.status_code in [200, 201]:
-                    return req.json()
-                elif req.status_code in [202]:
+                logging.info("Finish async request to {}. Headers: {}".format(
+                    url, headers))
+                r = self._session.request(method, url, headers=headers,
+                                          data=body)
+                if r.status_code in [200, 201]:
+                    if accept == JSON:
+                        return r.json()
+                    else:
+                        return r.text
+                elif r.status_code in [202]:
                     # Get the new URL to poll, etc.
-                    url = req.headers['Location']
+                    url = r.headers['Location']
                     method = GET
                     body = None
                     # Read and ignore the body
@@ -89,28 +100,35 @@ class MyriaConnection(object):
                     sleep(0.1)
                 else:
                     raise MyriaError('Error %d: %s'
-                                     % (req.status_code, req.text))
+                                     % (r.status_code, r.text))
         except Exception as e:
             if isinstance(e, MyriaError):
                 raise
             raise MyriaError(e)
 
-    def _make_request(self, method, url, body=None, headers=None):
+    def _make_request(self, method, url, body=None, accept=JSON):
+        headers = {
+            'Accept': accept
+        }
         try:
             if '://' not in url:
                 url = self._url_start + url
-            response = self._session.request(method, url, headers=headers,
-                                             data=body)
-            if response.status_code in [200, 201, 202]:
-                try:
-                    return response.json()
-                except ValueError, e:
-                    msg = ('Error deserializing JSON: %s. Response: "%s"'
-                           % (e, response.text))
-                    raise MyriaError(msg)
+            logging.info("Make myria request to {}. Headers: {}".format(
+                url, headers))
+            r = self._session.request(method, url, headers=headers,
+                                      data=body, stream=True)
+            if r.status_code in [200, 201, 202]:
+                if accept == JSON:
+                    try:
+                        return r.json()
+                    except ValueError, e:
+                        raise MyriaError(
+                            'Error %d: %s' % (r.status_code, r.text))
+                else:
+                    return r.iter_lines()
             else:
                 raise MyriaError('Error %d: %s'
-                                 % (response.status_code, response.text))
+                                 % (r.status_code, r.text))
         except Exception as e:
             if isinstance(e, MyriaError):
                 raise
@@ -273,24 +291,43 @@ class MyriaConnection(object):
         else:
             return []
 
-    def get_profile_logs(self, query_id, fragment_id=None, worker_id=None):
-        """Get the profiling logs for a query execution
+    def get_sent_logs(self, query_id, fragment_id=None):
+        """Get the logs for where data was sent.
 
         Args:
             query_id: the id of a submitted query
-            fragment_id: the id of a fragment in the query plan
-            worker_id: the id of a worker
+            fragment_id: the id of a fragment
         """
-
-        url = '/query/query-{query_id}'.format(query_id=query_id)
-
+        resource_path = '/logs/sent?queryId=%d' % int(query_id)
         if fragment_id is not None:
-            url += '/fragment-{fragment_id}'.format(fragment_id=fragment_id)
+            resource_path += '&fragmentId=%d' % int(fragment_id)
+        response = self._make_request(GET, resource_path, accept=CSV)
+        return csv.reader(response)
 
-        if worker_id is not None:
-            url += '?workerId={worker_id}'.format(worker_id=worker_id)
+    def get_profiling_log(self, query_id, fragment_id=None):
+        """Get the logs for operators.
 
-        return self._make_request(GET, url)
+        Args:
+            query_id: the id of a submitted query
+            fragment_id: the id of a fragment
+        """
+        resource_path = '/logs/profiling?queryId=%d' % int(query_id)
+        if fragment_id is not None:
+            resource_path += '&fragmentId=%d' % int(fragment_id)
+        response = self._make_request(GET, resource_path, accept=CSV)
+        return csv.reader(response)
+
+    def get_profiling_log_roots(self, query_id, fragment_id):
+        """Get the logs for root operators.
+
+        Args:
+            query_id: the id of a submitted query
+            fragment_id: the id of a fragment
+        """
+        resource_path = '/logs/profilingroots?queryId=%d&fragmentId=%d' % (int(
+            query_id), int(fragment_id))
+        response = self._make_request(GET, resource_path, accept=CSV)
+        return csv.reader(response)
 
     def queries(self, limit=None, max_=None):
         """Get information about all submitted queries.

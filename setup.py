@@ -13,5 +13,5 @@ setup(
     url='https://github.com/uwescience/myria',
     description='Python interface for Myria.',
     long_description=open('README.txt').read(),
-    install_requires=["requests",],
+    install_requires=["requests"],
 )
