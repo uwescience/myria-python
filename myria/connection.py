@@ -204,6 +204,20 @@ class MyriaConnection(object):
                               relation_key['relationName']),
                               params={'format': 'json'})
 
+    @staticmethod
+    def _ensure_schema(schema):
+        return {'columnTypes': schema['columnTypes'],
+                'columnNames': schema['columnNames']}
+
+    @staticmethod
+    def _ensure_relation_key(relation_key):
+        return {'userName': relation_key['userName'],
+                'programName': relation_key['programName'],
+                'relationName': relation_key['relationName']}
+
+    def create_empty(self, relation_key, schema):
+        return self.upload_source(relation_key, schema, {'dataType': 'Empty'})
+
     def upload_fp(self, relation_key, schema, fp):
         """Upload the data in the supplied fp to the specified user and
         relation.
@@ -214,25 +228,17 @@ class MyriaConnection(object):
             fp: A file pointer containing the data to be uploaded.
         """
 
-        # Clone the relation key and schema to ensure they don't contain
-        # extraneous fields.
-        relation_key = {'userName': relation_key['userName'],
-                        'programName': relation_key['programName'],
-                        'relationName': relation_key['relationName']}
-        schema = {'columnTypes': schema['columnTypes'],
-                  'columnNames': schema['columnNames']}
-
         data = base64.b64encode(fp.read())
+        source = {'dataType': 'Bytes',
+                  'bytes': data}
+        self.upload_source(relation_key, schema, source)
 
-        body = json.dumps({
-            'relationKey': relation_key,
-            'schema': schema,
-            'source': {
-                'dataType': 'Bytes',
-                'bytes': data
-            }})
+    def upload_source(self, relation_key, schema, source):
+        body = {'relationKey': self._ensure_relation_key(relation_key),
+                'schema': self._ensure_schema(schema),
+                'source': source}
 
-        return self._make_request(POST, '/dataset', body)
+        return self._make_request(POST, '/dataset', json.dumps(body))
 
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
