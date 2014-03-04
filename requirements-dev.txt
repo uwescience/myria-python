@@ -1,5 +1,5 @@
 coverage
 flake8 >= 2.0
-httmock
+httmock >= 1.2.1
 nose
 pylint
