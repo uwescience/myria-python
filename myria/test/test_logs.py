@@ -1,6 +1,5 @@
 from httmock import urlmatch, HTTMock
 import unittest
-from nose.plugins.skip import SkipTest
 from myria import MyriaConnection
 
 
@@ -22,7 +21,6 @@ class TestLogs(unittest.TestCase):
         unittest.TestCase.__init__(self, args)
 
     def test_sent_logs(self):
-        raise SkipTest("Skipping because of problem with mock")
         with HTTMock(local_mock):
             logs = self.connection.get_sent_logs(42)
             self.assertEquals(list(logs), [['foo', 'bar'], ['baz', 'ban']])
