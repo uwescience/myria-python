@@ -36,7 +36,7 @@ def local_mock(url, request):
         body = query_status(query(), 17, 'ACCEPTED')
         headers = {
             'Location': 'http://localhost:8753/query/query-17',
-            'Count': 42}
+            'X-Count': 42}
         query_counter = 2
         return {'status_code': 202, 'content': body, 'headers': headers}
     elif url.path == '/query/query-17':

@@ -351,4 +351,4 @@ class MyriaConnection(object):
             args['max'] = max_
         r = (self._make_request(GET, resource_path,
              params=args, get_request=True))
-        return int(r.headers.get('count', -1)), r.json()
+        return int(r.headers.get('x-count')), r.json()
