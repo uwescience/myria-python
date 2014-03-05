@@ -70,7 +70,10 @@ class MyriaConnection(object):
         self._session = requests.Session()
         self._session.headers.update(self._DEFAULT_HEADERS)
         # get workers just to make sure the connection is alive
-        self.workers()
+        try:
+            self.workers()
+        except requests.ConnectionError as e:
+            raise MyriaError(e)
 
     def _finish_async_request(self, method, url, body=None, accept=JSON):
         headers = {
