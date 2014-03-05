@@ -109,18 +109,22 @@ class MyriaConnection(object):
                 raise
             raise MyriaError(e)
 
-    def _make_request(self, method, url, body=None, accept=JSON):
+    def _make_request(self, method, url, body=None, params=None,
+                      accept=JSON, get_request=False):
         headers = {
             'Accept': accept
         }
         try:
             if '://' not in url:
                 url = self._url_start + url
-            logging.info("Make myria request to {}. Headers: {}".format(
-                url, headers))
             r = self._session.request(method, url, headers=headers,
-                                      data=body, stream=True)
+                                      data=body, params=params, stream=True)
+            logging.info(
+                "Make myria request to {}. Headers: {}".format(
+                r.url, headers))
             if r.status_code in [200, 201, 202]:
+                if get_request:
+                    return r
                 if accept == JSON:
                     try:
                         return r.json()
@@ -346,4 +350,6 @@ class MyriaConnection(object):
             args['limit'] = limit
         if max_ is not None:
             args['max'] = max_
-        return self._make_request(GET, resource_path, args)
+        r = (self._make_request(GET, resource_path,
+             params=args, get_request=True))
+        return int(r.headers.get('count', -1)), r.json()
