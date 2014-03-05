@@ -24,6 +24,9 @@ def query_status(query, query_id=17, status='SUCCESS'):
             'status': status}
 
 
+query_counter = 0
+
+
 @urlmatch(netloc=r'localhost:8753')
 def local_mock(url, request):
     global query_counter
@@ -31,7 +34,9 @@ def local_mock(url, request):
         return jstr({'1': 'localhost:9001', '2': 'localhost:9002'})
     elif url.path == '/query':
         body = query_status(query(), 17, 'ACCEPTED')
-        headers = {'Location': 'http://localhost:8753/query/query-17'}
+        headers = {
+            'Location': 'http://localhost:8753/query/query-17',
+            'Count': 42}
         query_counter = 2
         return {'status_code': 202, 'content': body, 'headers': headers}
     elif url.path == '/query/query-17':
@@ -63,7 +68,6 @@ class TestQuery(unittest.TestCase):
         q = query()
         with HTTMock(local_mock):
             status = self.connection.submit_query(q)
-            global query_counter
             self.assertEquals(status, query_status(q, status='ACCEPTED'))
             self.assertEquals(query_counter, 1)
 
@@ -84,3 +88,8 @@ class TestQuery(unittest.TestCase):
         with HTTMock(local_mock):
             status = self.connection.get_query_status(17)
             self.assertEquals(status, query_status(q))
+
+    def x_test_queries(self):
+        with HTTMock(local_mock):
+            count, _ = self.connection.queries()
+            self.assertEquals(42, count)

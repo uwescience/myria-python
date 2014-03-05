@@ -119,9 +119,8 @@ class MyriaConnection(object):
                 url = self._url_start + url
             r = self._session.request(method, url, headers=headers,
                                       data=body, params=params, stream=True)
-            logging.info(
-                "Make myria request to {}. Headers: {}".format(
-                r.url, headers))
+            logging.info("Make myria request to {}. Headers: {}".format(
+                         r.url, headers))
             if r.status_code in [200, 201, 202]:
                 if get_request:
                     return r
@@ -337,7 +336,7 @@ class MyriaConnection(object):
         return csv.reader(response)
 
     def queries(self, limit=None, max_=None):
-        """Get information about all submitted queries.
+        """Get count and information about all submitted queries.
 
         Args:
             limit: the maximum number of query status results to return.
