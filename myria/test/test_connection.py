@@ -4,11 +4,11 @@ import unittest
 from myria import MyriaConnection
 
 
-@urlmatch(netloc=r'localhost:8753')
+@urlmatch(netloc=r'localhost:12345')
 def local_mock(url, request):
     ret = None
     if url.path == '/workers':
-        ret = {'1': 'localhost:9001', '2': 'localhost:9002'}
+        ret = {'1': 'localhost:12347', '2': 'localhost:12348'}
 
     return json.dumps(ret)
 
@@ -21,7 +21,7 @@ class TestDeployment(unittest.TestCase):
         with open('myria/test/deployment.cfg.local') as deploy_file:
             hostname, port = MyriaConnection._parse_deployment(deploy_file)
             self.assertEqual(hostname, 'localhost')
-            self.assertEqual(port, 8753)
+            self.assertEqual(port, 12345)
 
     def test_deploy_file(self):
         with HTTMock(local_mock):
@@ -31,12 +31,12 @@ class TestDeployment(unittest.TestCase):
             assert connection is not None
 
             self.assertEquals(connection.workers(),
-                              {'1': 'localhost:9001', '2': 'localhost:9002'})
+                              {'1': 'localhost:12347', '2': 'localhost:12348'})
 
     def test_deploy_params(self):
         with HTTMock(local_mock):
-            connection = MyriaConnection(hostname='localhost', port=8753)
+            connection = MyriaConnection(hostname='localhost', port=12345)
             assert connection is not None
 
             self.assertEquals(connection.workers(),
-                              {'1': 'localhost:9001', '2': 'localhost:9002'})
+                              {'1': 'localhost:12347', '2': 'localhost:12348'})

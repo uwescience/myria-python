@@ -3,7 +3,7 @@ import unittest
 from myria import MyriaConnection
 
 
-@urlmatch(netloc=r'localhost:8753')
+@urlmatch(netloc=r'localhost:12345')
 def local_mock(url, request):
     if url.path == '/logs/sent':
         body = 'foo,bar\nbaz,ban'
@@ -14,7 +14,7 @@ def local_mock(url, request):
 class TestLogs(unittest.TestCase):
     def __init__(self, args):
         with HTTMock(local_mock):
-            self.connection = MyriaConnection(hostname='localhost', port=8753)
+            self.connection = MyriaConnection(hostname='localhost', port=12345)
         unittest.TestCase.__init__(self, args)
 
     def test_sent_logs(self):

@@ -12,7 +12,7 @@ def query():
 
 
 def query_status(query, query_id=17, status='SUCCESS'):
-    return {'url': 'http://localhost:8753/query/query-%d' % query_id,
+    return {'url': 'http://localhost:12345/query/query-%d' % query_id,
             'queryId': query_id,
             'rawQuery': query['rawQuery'],
             'logicalRa': query['rawQuery'],
@@ -27,13 +27,13 @@ def query_status(query, query_id=17, status='SUCCESS'):
 query_counter = 0
 
 
-@urlmatch(netloc=r'localhost:8753')
+@urlmatch(netloc=r'localhost:12345')
 def local_mock(url, request):
     global query_counter
     if url.path == '/query':
         body = query_status(query(), 17, 'ACCEPTED')
         headers = {
-            'Location': 'http://localhost:8753/query/query-17',
+            'Location': 'http://localhost:12345/query/query-17',
             'X-Count': 42}
         query_counter = 2
         return {'status_code': 202, 'content': body, 'headers': headers}
@@ -46,7 +46,7 @@ def local_mock(url, request):
             status_code = 202
             query_counter -= 1
         body = query_status(query(), 17, status)
-        headers = {'Location': 'http://localhost:8753/query/query-17'}
+        headers = {'Location': 'http://localhost:12345/query/query-17'}
         return {'status_code': status_code,
                 'content': body,
                 'headers': headers}
@@ -59,7 +59,7 @@ def local_mock(url, request):
 class TestQuery(unittest.TestCase):
     def __init__(self, args):
         with HTTMock(local_mock):
-            self.connection = MyriaConnection(hostname='localhost', port=8753)
+            self.connection = MyriaConnection(hostname='localhost', port=12345)
         unittest.TestCase.__init__(self, args)
 
     def test_submit(self):

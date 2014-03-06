@@ -5,12 +5,12 @@ name = twoNodeLocalParallel
 dbms = sqlite
 # Uncomment to set the maximum heap size of the Java processes
 #max_heap_size=-Xmx2g
-rest_port = 8753
+rest_port = 12345
 
 # Compute nodes configuration
 [master]
-0 = localhost:8001
+0 = localhost:12346
 
 [workers]
-1 = localhost:9001
-2 = localhost:9002
+1 = localhost:12347
+2 = localhost:12348
