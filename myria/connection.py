@@ -346,4 +346,6 @@ class MyriaConnection(object):
             args['max'] = max_
         r = (self._make_request(GET, resource_path,
              params=args, get_request=True))
-        return int(r.headers.get('x-count', -1)), r.json()
+        count = r.headers.get('x-count')
+        assert count is not None, "Missing header: x-count"
+        return int(count), r.json()
