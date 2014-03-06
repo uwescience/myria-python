@@ -5,10 +5,7 @@ from myria import MyriaConnection
 
 @urlmatch(netloc=r'localhost:8753')
 def local_mock(url, request):
-    if url.path == '/workers':
-        return {'status_code': 200, 'content': {'1': 'localhost:9001',
-                                                '2': 'localhost:9002'}}
-    elif url.path == '/logs/sent':
+    if url.path == '/logs/sent':
         body = 'foo,bar\nbaz,ban'
         return {'status_code': 200, 'content': body}
     return None

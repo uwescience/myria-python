@@ -25,6 +25,7 @@ class TestDeployment(unittest.TestCase):
 
     def test_deploy_file(self):
         with HTTMock(local_mock):
+            connection = None
             with open('myria/test/deployment.cfg.local') as deploy_file:
                 connection = MyriaConnection(deploy_file)
             assert connection is not None

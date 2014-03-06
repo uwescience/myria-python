@@ -30,9 +30,7 @@ query_counter = 0
 @urlmatch(netloc=r'localhost:8753')
 def local_mock(url, request):
     global query_counter
-    if url.path == '/workers':
-        return jstr({'1': 'localhost:9001', '2': 'localhost:9002'})
-    elif url.path == '/query':
+    if url.path == '/query':
         body = query_status(query(), 17, 'ACCEPTED')
         headers = {
             'Location': 'http://localhost:8753/query/query-17',
