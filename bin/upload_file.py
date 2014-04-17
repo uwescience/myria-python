@@ -128,7 +128,7 @@ def main():
 
     table_set = any_tableset(args.file)
     if len(table_set.tables) != 1:
-        raise ValueError("Can only handle files with a single table, not %"
+        raise ValueError("Can only handle files with a single table, not %s"
                          % len(table_set.tables))
 
     row_set = table_set.tables[0]
