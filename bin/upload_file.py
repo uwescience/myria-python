@@ -27,9 +27,12 @@ def parse_args():
     # Port
     def check_valid_port(p):
         "True if p is a valid port number"
-        if isinstance(p, int) and p > 0 and p < 65536:
+        try:
+            p = int(p)
+            assert p > 0 and p < 65536
             return p
-        raise argparse.ArgumentTypeError('invalid port [1, 65535]: %s' % value)
+        except:
+            raise argparse.ArgumentTypeError('invalid port [1, 65535]: %s' % p)
 
     parser.add_argument('--port', '-p', help="Myria REST server port",
                         default=1776, type=check_valid_port)
