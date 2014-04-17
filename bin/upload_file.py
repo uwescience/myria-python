@@ -12,7 +12,7 @@ import StringIO
 from struct import Struct
 
 # Set the log level here
-logging.getLogger().setLevel(logging.INFO)
+# logging.getLogger().setLevel(logging.INFO)
 
 
 def parse_args():
