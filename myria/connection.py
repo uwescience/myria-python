@@ -6,6 +6,7 @@ from time import sleep
 import logging
 
 import requests
+from requests_toolbelt import MultipartEncoder
 
 from .errors import MyriaError
 
@@ -355,3 +356,38 @@ class MyriaConnection(object):
         count = r.headers.get('x-count')
         assert count is not None, "Missing header: x-count"
         return int(count), r.json()
+
+    def upload_file(self, relation_key, schema, data, overwrite=None,
+                    delimiter=None, binary=None, is_little_endian=None):
+        """Upload a file in a streaming manner to Myria.
+
+        Args:
+            relation_key: relation to be created.
+            schema: schema of the relation.
+            data: the bytes to be uploaded.
+            overwrite: optional boolean indicating that an existing relation
+                should be overwritten. Myria default is False.
+            delimiter: optional character which delimits a CSV file. Only valid
+                if binary is False. Myria default is ','.
+            binary: optional boolean indicating that the data is encoded as
+                a packed binary. Myria default is False.
+            is_little_endian: optional boolean indicating that the binary data
+                is in little-Endian. Myria default is False.
+        """
+        fields = [('relationKey', relation_key), ('schema', schema),
+                  ('overwrite', overwrite), ('delimiter', delimiter),
+                  ('binary', binary), ('isLittleEndian', is_little_endian)]
+        fields = [(name, (name, json.dumps(value), 'application/json'))
+                  for (name, value) in fields]
+        # data must be last
+        if binary:
+            data_type = 'application/octet-stream'
+        else:
+            data_type = 'text/plain'
+        fields.append(('data', ('data', data, data_type)))
+
+        m = MultipartEncoder(fields=fields)
+        r = self._session.post(self._url_start + '/dataset', data=m,
+                               headers={'Content-Type': m.content_type})
+        r.raise_for_status()
+        return r.json()

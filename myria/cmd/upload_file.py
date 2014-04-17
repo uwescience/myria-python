@@ -15,7 +15,11 @@ from struct import Struct
 # logging.getLogger().setLevel(logging.INFO)
 
 
-def parse_args():
+def pretty_json(obj):
+    return json.dumps(obj, indent=4, separators=(',', ': '))
+
+
+def parse_args(argv=None):
     """Parse the arguments for this program"""
     parser = argparse.ArgumentParser(description='Upload a plaintext dataset to Myria',  # noqa
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)   # noqa
@@ -50,7 +54,7 @@ def parse_args():
     parser.add_argument('--overwrite', '-o', help="Overwrite existing data",
                         action='store_true')
 
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def convert_type(type_):
@@ -121,8 +125,8 @@ def plaintext_data(row_set, schema):
     return output.getvalue()
 
 
-def main():
-    args = parse_args()
+def main(argv=None):
+    args = parse_args(argv)
 
     relation_key = args_to_relation_key(args)
 
@@ -166,37 +170,16 @@ def main():
     logging.info("Myria schema: {}".format(json.dumps(schema)))
 
     # Connect to Myria
-    # connection = myria.MyriaConnection(hostname=args.hostname, port=args.port)
-
-    # Common parameters
-    params = [('relationKey', relation_key),
-              ('schema', schema),
-              ('overwrite', args.overwrite)]
+    connection = myria.MyriaConnection(hostname=args.hostname, port=args.port)
 
     try:
         data = binary_data(row_set, schema)
-        params += [('binary', True), ('isLittleEndian', True)]
-        data_type = 'application/octet-stream'
+        ret = connection.upload_file(relation_key, schema, data,
+                                     args.overwrite, binary=True,
+                                     is_little_endian=True)
     except:
         data = plaintext_data(row_set, schema)
-        data_type = 'text/csv'
+        ret = connection.upload_file(relation_key, schema, data,
+                                     args.overwrite)
 
-    assert not any(name == 'data' for (name, value) in params)
-    fields = [(name, (name, json.dumps(value), 'application/json'))
-              for (name, value) in params
-              if name != 'data']
-
-    # data must be last
-    fields.append(('data', ('data', data, data_type)))
-
-    from requests_toolbelt import MultipartEncoder
-    import requests
-    m = MultipartEncoder(fields=fields)
-    r = requests.post('http://{host}:{port}/dataset'.format(host=args.hostname,
-                                                            port=args.port),
-                      data=m, headers={'Content-Type': m.content_type})
-    r.raise_for_status()
-    print r.json()
-
-if __name__ == "__main__":
-    main()
+    print pretty_json(ret)

@@ -1,14 +1,11 @@
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(
     name='myria-python',
-    version='1.0',
+    version='1.1',
     author='Daniel Halperin',
     author_email='dhalperi@cs.washington.edu',
-    packages=['myria'],
+    packages=find_packages(),
     scripts=[],
     url='https://github.com/uwescience/myria',
     description='Python interface for Myria.',

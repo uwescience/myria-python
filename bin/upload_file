@@ -1,0 +1,5 @@
+from myria.cmd import upload_file
+import sys
+
+if __name__ == "__main__":
+	upload_file.main(sys.argv[1:])
