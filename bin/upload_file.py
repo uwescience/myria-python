@@ -9,7 +9,7 @@ from messytables import (any_tableset, headers_guess, headers_processor,
 from messytables import (StringType, IntegerType, DecimalType, FloatType)
 import myria
 import StringIO
-import struct
+from struct import Struct
 
 # Set the log level here
 logging.getLogger().setLevel(logging.INFO)
@@ -65,15 +65,6 @@ def convert_type(type_):
         raise NotImplementedError("type {} is not supported".format(type_))
 
 
-def type_fmt(type_):
-    "Return the Python struct marker for the type"
-    if type_ == 'LONG_TYPE':
-        return 'q'
-    elif type_ == 'DOUBLE_TYPE':
-        return 'd'
-    raise NotImplementedError('type {} is not supported'.format(type_))
-
-
 def messy_to_schema(types, headers=None):
     "Convert a MessyTables schema to a Myria Schema"
     types = [convert_type(t) for t in types]
@@ -94,6 +85,40 @@ def args_to_relation_key(args):
     return {'userName': args.user,
             'programName': args.program,
             'relationName': args.relation}
+
+
+def type_fmt(type_):
+    "Return the Python struct marker for the type"
+    if type_ == 'INT_TYPE':
+        return 'i'
+    elif type_ == 'LONG_TYPE':
+        return 'q'
+    elif type_ == 'FLOAT_TYPE':
+        return 'f'
+    elif type_ == 'DOUBLE_TYPE':
+        return 'd'
+    raise NotImplementedError('type {} is not supported'.format(type_))
+
+
+def binary_data(row_set, schema):
+    column_types = schema['columnTypes']
+    desc = '<' + ''.join(type_fmt(type_) for type_ in column_types)
+    struct = Struct(desc)
+    logging.info("Creating a binary file with struct.fmt={}".format(desc))
+    output = StringIO.StringIO()
+    for row in row_set:
+        vals = [cell.value for cell in row]
+        output.write(struct.pack(*vals))
+    return output.getvalue()
+
+
+def plaintext_data(row_set, schema):
+    logging.info("Creating a plaintext file")
+    output = StringIO.StringIO()
+    writer = csv.writer(output)
+    for row in row_set:
+        writer.writerow([r.value for r in row])
+    return output.getvalue()
 
 
 def main():
@@ -133,35 +158,40 @@ def main():
     if no_headers:
         # We don't need the headers_processor or the offset_processor
         row_set._processors = []
+        row_set.register_processor(types_processor(types))
         headers = None
 
     # Construct the Myria schema
     schema = messy_to_schema(types, headers)
-    print json.dumps(schema)
+    logging.info("Myria schema: {}".format(json.dumps(schema)))
 
     # Connect to Myria
     # connection = myria.MyriaConnection(hostname=args.hostname, port=args.port)
 
-    # Generate a nice concatenated CSV in memory. Note this means we can only
-    # upload small files at the moment
-    data = StringIO.StringIO()
-    writer = csv.writer(data)
-    for row in row_set:
-        writer.writerow([r.value for r in row])
-    body = data.getvalue()
-    data.close()
+    # Common parameters
+    params = [('relationKey', relation_key),
+              ('schema', schema),
+              ('overwrite', args.overwrite)]
+
+    try:
+        data = binary_data(row_set, schema)
+        params += [('binary', True), ('isLittleEndian', True)]
+        data_type = 'application/octet-stream'
+    except:
+        data = plaintext_data(row_set, schema)
+        data_type = 'text/csv'
+
+    assert not any(name == 'data' for (name, value) in params)
+    fields = [(name, (name, json.dumps(value), 'application/json'))
+              for (name, value) in params
+              if name != 'data']
+
+    # data must be last
+    fields.append(('data', ('data', data, data_type)))
 
     from requests_toolbelt import MultipartEncoder
     import requests
-    m = MultipartEncoder(fields=[
-        ('relationKey', ('relationKey',
-                         json.dumps(relation_key), 'application/json')),
-        ('schema', ('schema', json.dumps(schema), 'application/json')),
-        ('overwrite', ('overwrite',
-                       json.dumps(args.overwrite), 'application/json')),
-        # data must be last
-        ('data', ('data', body, 'text/csv')),
-    ])
+    m = MultipartEncoder(fields=fields)
     r = requests.post('http://{host}:{port}/dataset'.format(host=args.hostname,
                                                             port=args.port),
                       data=m, headers={'Content-Type': m.content_type})
