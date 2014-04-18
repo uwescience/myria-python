@@ -174,10 +174,14 @@ def main(argv=None):
 
     try:
         data = binary_data(row_set, schema)
+    except:
+        data = None
+
+    if data is not None:
         ret = connection.upload_file(relation_key, schema, data,
                                      args.overwrite, binary=True,
                                      is_little_endian=True)
-    except:
+    else:
         data = plaintext_data(row_set, schema)
         ret = connection.upload_file(relation_key, schema, data,
                                      args.overwrite)
