@@ -104,25 +104,41 @@ def type_fmt(type_):
     raise NotImplementedError('type {} is not supported'.format(type_))
 
 
-def binary_data(row_set, schema):
+def write_binary(row_set, schema, output):
     column_types = schema['columnTypes']
     desc = '<' + ''.join(type_fmt(type_) for type_ in column_types)
-    struct = Struct(desc)
     logging.info("Creating a binary file with struct.fmt={}".format(desc))
-    output = StringIO.StringIO()
+
+    struct = Struct(desc)
     for row in row_set:
         vals = [cell.value for cell in row]
         output.write(struct.pack(*vals))
-    return output.getvalue()
 
 
-def plaintext_data(row_set, schema):
+def write_plaintext(row_set, output):
     logging.info("Creating a plaintext file")
-    output = StringIO.StringIO()
     writer = csv.writer(output)
     for row in row_set:
         writer.writerow([r.value for r in row])
-    return output.getvalue()
+
+
+def write_data(row_set, schema):
+    """Given a row_set and schema, return (data, kwargs) for sending
+    to Myria."""
+    output = StringIO.StringIO()
+
+    if all(type_ in ['INT_TYPE', 'LONG_TYPE', 'FLOAT_TYPE', 'DOUBLE_TYPE']
+           for type_ in schema['columnTypes']):
+        # File is binary
+        write_binary(row_set, schema, output)
+        kwargs = {'binary': True, 'is_little_endian': True}
+    else:
+        # File is plaintext
+        logging.info("Creating a plaintext file")
+        write_plaintext(row_set, output)
+        kwargs = {}
+
+    return output.getvalue(), kwargs
 
 
 def main(argv=None):
@@ -169,21 +185,12 @@ def main(argv=None):
     schema = messy_to_schema(types, headers)
     logging.info("Myria schema: {}".format(json.dumps(schema)))
 
-    # Connect to Myria
+    # Prepare data for writing to Myria
+    data, kwargs = write_data(row_set, schema)
+
+    # Connect to Myria and send the data
     connection = myria.MyriaConnection(hostname=args.hostname, port=args.port)
-
-    try:
-        data = binary_data(row_set, schema)
-    except:
-        data = None
-
-    if data is not None:
-        ret = connection.upload_file(relation_key, schema, data,
-                                     args.overwrite, binary=True,
-                                     is_little_endian=True)
-    else:
-        data = plaintext_data(row_set, schema)
-        ret = connection.upload_file(relation_key, schema, data,
-                                     args.overwrite)
+    ret = connection.upload_file(relation_key, schema, data,
+                                 args.overwrite, **kwargs)
 
     print pretty_json(ret)
