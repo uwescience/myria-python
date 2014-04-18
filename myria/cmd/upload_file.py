@@ -8,11 +8,17 @@ from messytables import (any_tableset, headers_guess, headers_processor,
                          offset_processor, type_guess, types_processor)
 from messytables import (StringType, IntegerType, DecimalType, FloatType)
 import myria
+import os
 import StringIO
 from struct import Struct
+import thread
 
 # Set the log level here
 # logging.getLogger().setLevel(logging.INFO)
+
+# Buffer size of the pipe -- enough to have lots of data, but not so much the
+# system runs out of memory. 20 MB for now.
+_BUFFER_SIZE = 20 * (2 ** 20)
 
 
 def pretty_json(obj):
@@ -104,25 +110,40 @@ def type_fmt(type_):
     raise NotImplementedError('type {} is not supported'.format(type_))
 
 
-def binary_data(row_set, schema):
+def write_binary(row_set, schema, output_fd):
+    output = os.fdopen(output_fd, 'wb', _BUFFER_SIZE)
     column_types = schema['columnTypes']
     desc = '<' + ''.join(type_fmt(type_) for type_ in column_types)
     struct = Struct(desc)
     logging.info("Creating a binary file with struct.fmt={}".format(desc))
-    output = StringIO.StringIO()
     for row in row_set:
         vals = [cell.value for cell in row]
         output.write(struct.pack(*vals))
-    return output.getvalue()
+    output.close()
 
 
-def plaintext_data(row_set, schema):
-    logging.info("Creating a plaintext file")
-    output = StringIO.StringIO()
+def write_plaintext(row_set, output_fd):
+    output = os.fdopen(output_fd, 'wb', _BUFFER_SIZE)
     writer = csv.writer(output)
     for row in row_set:
         writer.writerow([r.value for r in row])
-    return output.getvalue()
+    output.close()
+
+
+def start_writing(row_set, schema, output_fd):
+    """Begin writing the data in this row_set to the output pipe. Returns a
+    dictionary of arguments to be appended to the command to begin streaming
+    the data to Myria."""
+
+    if all(type_ in ['INT_TYPE', 'LONG_TYPE', 'FLOAT_TYPE', 'DOUBLE_TYPE']
+           for type_ in schema['columnTypes']):
+        # File is binary
+        thread.start_new_thread(write_binary, (row_set, schema, output_fd))
+        return {'binary': True, 'is_little_endian': True}
+    else:
+        logging.info("Creating a plaintext file")
+        thread.start_new_thread(write_plaintext, (row_set, output_fd))
+        return {}
 
 
 def main(argv=None):
@@ -172,18 +193,11 @@ def main(argv=None):
     # Connect to Myria
     connection = myria.MyriaConnection(hostname=args.hostname, port=args.port)
 
-    try:
-        data = binary_data(row_set, schema)
-    except:
-        data = None
+    r, w = os.pipe()
+    reader = os.fdopen(r, 'rb', _BUFFER_SIZE)
 
-    if data is not None:
-        ret = connection.upload_file(relation_key, schema, data,
-                                     args.overwrite, binary=True,
-                                     is_little_endian=True)
-    else:
-        data = plaintext_data(row_set, schema)
-        ret = connection.upload_file(relation_key, schema, data,
-                                     args.overwrite)
+    kwargs = start_writing(row_set, schema, w)
+    ret = connection.upload_file(relation_key, schema, reader,
+                                 args.overwrite, **kwargs)
 
     print pretty_json(ret)

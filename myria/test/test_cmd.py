@@ -144,5 +144,10 @@ def mock_TwitterK(url, request):
             assert schema['columnTypes'] == ['DOUBLE_TYPE', 'DOUBLE_TYPE']
         else:
             assert False
+        # Get and read the data so that the writer doesn't throw an exception
+        # .. that the pipe isn't closed
+        data = get_field(fields, 'data')
+        if hasattr(data, 'read'):
+            data.read()
         return jstr("ok")
     return None
