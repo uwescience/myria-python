@@ -63,7 +63,7 @@ def convert_type(type_):
         return "STRING_TYPE"
     elif isinstance(type_, IntegerType):
         return "LONG_TYPE"
-    elif isinstance(type_, [DecimalType, FloatType]):
+    elif isinstance(type_, (DecimalType, FloatType)):
         return "DOUBLE_TYPE"
     else:
         raise NotImplementedError("type {} is not supported".format(type_))

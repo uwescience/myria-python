@@ -104,6 +104,16 @@ class TestCmd(unittest.TestCase):
                               '--port', '12345',
                               'testdata/plaintext.csv'])
 
+    def test_float(self):
+        with HTTMock(mock_TwitterK):
+            upload_file.main(['--relation', 'float',
+                              '--program', 'testp',
+                              '--user', 'test',
+                              '--overwrite',
+                              '--hostname', 'localhost',
+                              '--port', '12345',
+                              'testdata/float.txt'])
+
 
 def get_field(fields, name):
     (name, value, content_type) = fields[name]
@@ -129,6 +139,9 @@ def mock_TwitterK(url, request):
         elif relation_key['relationName'] == 'plaintext':
             assert schema['columnNames'] == ['number', 'value']
             assert schema['columnTypes'] == ['LONG_TYPE', 'STRING_TYPE']
+        elif relation_key['relationName'] == 'float':
+            assert schema['columnNames'] == ['field1', 'field2']
+            assert schema['columnTypes'] == ['DOUBLE_TYPE', 'DOUBLE_TYPE']
         else:
             assert False
         return jstr("ok")
