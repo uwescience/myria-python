@@ -6,6 +6,7 @@ from time import sleep
 import logging
 
 import requests
+from requests_toolbelt import MultipartEncoder
 
 from .errors import MyriaError
 
@@ -204,6 +205,20 @@ class MyriaConnection(object):
                               relation_key['relationName']),
                               params={'format': 'json'})
 
+    @staticmethod
+    def _ensure_schema(schema):
+        return {'columnTypes': schema['columnTypes'],
+                'columnNames': schema['columnNames']}
+
+    @staticmethod
+    def _ensure_relation_key(relation_key):
+        return {'userName': relation_key['userName'],
+                'programName': relation_key['programName'],
+                'relationName': relation_key['relationName']}
+
+    def create_empty(self, relation_key, schema):
+        return self.upload_source(relation_key, schema, {'dataType': 'Empty'})
+
     def upload_fp(self, relation_key, schema, fp):
         """Upload the data in the supplied fp to the specified user and
         relation.
@@ -214,25 +229,17 @@ class MyriaConnection(object):
             fp: A file pointer containing the data to be uploaded.
         """
 
-        # Clone the relation key and schema to ensure they don't contain
-        # extraneous fields.
-        relation_key = {'userName': relation_key['userName'],
-                        'programName': relation_key['programName'],
-                        'relationName': relation_key['relationName']}
-        schema = {'columnTypes': schema['columnTypes'],
-                  'columnNames': schema['columnNames']}
-
         data = base64.b64encode(fp.read())
+        source = {'dataType': 'Bytes',
+                  'bytes': data}
+        self.upload_source(relation_key, schema, source)
 
-        body = json.dumps({
-            'relationKey': relation_key,
-            'schema': schema,
-            'source': {
-                'dataType': 'Bytes',
-                'bytes': data
-            }})
+    def upload_source(self, relation_key, schema, source):
+        body = {'relationKey': self._ensure_relation_key(relation_key),
+                'schema': self._ensure_schema(schema),
+                'source': source}
 
-        return self._make_request(POST, '/dataset', body)
+        return self._make_request(POST, '/dataset', json.dumps(body))
 
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
@@ -349,3 +356,40 @@ class MyriaConnection(object):
         count = r.headers.get('x-count')
         assert count is not None, "Missing header: x-count"
         return int(count), r.json()
+
+    def upload_file(self, relation_key, schema, data, overwrite=None,
+                    delimiter=None, binary=None, is_little_endian=None):
+        """Upload a file in a streaming manner to Myria.
+
+        Args:
+            relation_key: relation to be created.
+            schema: schema of the relation.
+            data: the bytes to be uploaded.
+            overwrite: optional boolean indicating that an existing relation
+                should be overwritten. Myria default is False.
+            delimiter: optional character which delimits a CSV file. Only valid
+                if binary is False. Myria default is ','.
+            binary: optional boolean indicating that the data is encoded as
+                a packed binary. Myria default is False.
+            is_little_endian: optional boolean indicating that the binary data
+                is in little-Endian. Myria default is False.
+        """
+        fields = [('relationKey', relation_key), ('schema', schema),
+                  ('overwrite', overwrite), ('delimiter', delimiter),
+                  ('binary', binary), ('isLittleEndian', is_little_endian)]
+        fields = [(name, (name, json.dumps(value), 'application/json'))
+                  for (name, value) in fields]
+        # data must be last
+        if binary:
+            data_type = 'application/octet-stream'
+        else:
+            data_type = 'text/plain'
+        fields.append(('data', ('data', data, data_type)))
+
+        m = MultipartEncoder(fields=fields)
+        r = self._session.post(self._url_start + '/dataset', data=m,
+                               headers={'Content-Type': m.content_type})
+        if r.status_code not in (200, 201):
+            raise MyriaError('Error %d: %s'
+                             % (r.status_code, r.text))
+        return r.json()
