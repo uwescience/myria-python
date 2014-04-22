@@ -1,6 +1,7 @@
 from httmock import urlmatch, HTTMock
 from json import dumps as jstr, loads
 from myria.cmd import upload_file
+from myria.errors import MyriaError
 import unittest
 import sys
 
@@ -90,6 +91,16 @@ class TestCmd(unittest.TestCase):
                               '--port', '12345',
                               'testdata/TwitterK.csv'])
 
+    def test_existing_file(self):
+        with HTTMock(mock_TwitterK):
+            with self.assertRaises(MyriaError):
+                upload_file.main(['--relation', 'TwitterK',
+                                  '--program', 'testp',
+                                  '--user', 'test',
+                                  '--hostname', 'localhost',
+                                  '--port', '12345',
+                                  'testdata/TwitterK.csv'])
+
     def test_TwitterKnoheader_csv(self):
         with HTTMock(mock_TwitterK):
             upload_file.main(['--relation', 'TwitterKnoheader',
@@ -134,6 +145,10 @@ def mock_TwitterK(url, request):
         fields = dict(request.body.fields)
         relation_key = get_field(fields, 'relationKey')
         schema = get_field(fields, 'schema')
+        overwrite = get_field(fields, 'overwrite')
+        if not overwrite:
+            return {'status_code': 409,
+                    'content': 'That dataset already exists.'}
         assert relation_key['userName'] == 'test'
         assert relation_key['programName'] == 'testp'
         if relation_key['relationName'] == 'TwitterK':

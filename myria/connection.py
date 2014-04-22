@@ -389,5 +389,7 @@ class MyriaConnection(object):
         m = MultipartEncoder(fields=fields)
         r = self._session.post(self._url_start + '/dataset', data=m,
                                headers={'Content-Type': m.content_type})
-        r.raise_for_status()
+        if r.status_code not in (200, 201):
+            raise MyriaError('Error %d: %s'
+                             % (r.status_code, r.text))
         return r.json()
