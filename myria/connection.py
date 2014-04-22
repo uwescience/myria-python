@@ -6,7 +6,6 @@ from time import sleep
 import logging
 
 import requests
-from requests_toolbelt import MultipartEncoder
 
 from .errors import MyriaError
 
@@ -374,6 +373,9 @@ class MyriaConnection(object):
             is_little_endian: optional boolean indicating that the binary data
                 is in little-Endian. Myria default is False.
         """
+
+        from requests_toolbelt import MultipartEncoder
+
         fields = [('relationKey', relation_key), ('schema', schema),
                   ('overwrite', overwrite), ('delimiter', delimiter),
                   ('binary', binary), ('isLittleEndian', is_little_endian)]
