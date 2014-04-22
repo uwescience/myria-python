@@ -6,7 +6,7 @@ import json
 import logging
 from messytables import (any_tableset, headers_guess, headers_processor,
                          offset_processor, type_guess, types_processor)
-from messytables import (StringType, IntegerType, DecimalType, FloatType)
+from messytables import (StringType, IntegerType, DecimalType)
 import myria
 import StringIO
 from struct import Struct
@@ -63,10 +63,8 @@ def convert_type(type_):
         return "STRING_TYPE"
     elif isinstance(type_, IntegerType):
         return "LONG_TYPE"
-    elif isinstance(type_, (DecimalType, FloatType)):
+    elif isinstance(type_, DecimalType):
         return "DOUBLE_TYPE"
-    else:
-        raise NotImplementedError("type {} is not supported".format(type_))
 
 
 def messy_to_schema(types, headers=None):
@@ -160,7 +158,8 @@ def main(argv=None):
     row_set.register_processor(offset_processor(offset + 1))
 
     # guess types and register them
-    types = type_guess(row_set.sample, strict=True)
+    types = type_guess(row_set.sample, strict=True,
+                       types=[StringType, DecimalType, IntegerType])
     row_set.register_processor(types_processor(types))
 
     # Messytables seems to not handle the case where there are no headers.
