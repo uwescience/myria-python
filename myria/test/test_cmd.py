@@ -28,12 +28,18 @@ class TestCmd(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 args = upload_file.parse_args(['--relation', 'tmp'])
             with self.assertRaises(SystemExit):
-                args = upload_file.parse_args(['nosuchfile'])
+                try:
+                    args = upload_file.parse_args(['nosuchfile'])
+                except IOError:
+                    raise SystemExit()
 
             # Illegal file
             with self.assertRaises(SystemExit):
-                args = upload_file.parse_args(['--relation', 'tmp',
-                                               'nosuchfile'])
+                try:
+                    args = upload_file.parse_args(['--relation', 'tmp',
+                                                   'nosuchfile'])
+                except IOError:
+                    raise SystemExit()
 
             # Bad port
             with self.assertRaises(SystemExit):
