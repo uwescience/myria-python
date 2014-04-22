@@ -11,4 +11,9 @@ setup(
     description='Python interface for Myria.',
     long_description=open('README.txt').read(),
     install_requires=["requests", "requests_toolbelt", "messytables"],
+    entry_points={
+        'console_scripts': [
+            'myria_upload = myria.cmd.upload_file:main'
+        ],
+    },
 )
