@@ -131,6 +131,16 @@ class TestCmd(unittest.TestCase):
                               '--port', '12345',
                               'testdata/float.txt'])
 
+    def test_null(self):
+        with HTTMock(mock_TwitterK):
+            upload_file.main(['--relation', 'nulls',
+                              '--program', 'testp',
+                              '--user', 'test',
+                              '--overwrite',
+                              '--hostname', 'localhost',
+                              '--port', '12345',
+                              'testdata/nulls.txt'])
+
 
 def get_field(fields, name):
     (name, value, content_type) = fields[name]
@@ -163,6 +173,9 @@ def mock_TwitterK(url, request):
         elif relation_key['relationName'] == 'float':
             assert schema['columnNames'] == ['field1', 'field2']
             assert schema['columnTypes'] == ['DOUBLE_TYPE', 'DOUBLE_TYPE']
+        elif relation_key['relationName'] == 'nulls':
+            assert schema['columnNames'] == ['field1', 'field2', 'field3']
+            assert schema['columnTypes'] == ['LONG_TYPE', 'STRING_TYPE', 'STRING_TYPE']
         else:
             assert False
         return jstr("ok")

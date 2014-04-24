@@ -4,15 +4,18 @@ import argparse
 import csv
 import json
 import logging
-from messytables import (any_tableset, headers_guess, headers_processor,
-                         offset_processor, type_guess, types_processor)
-from messytables import (StringType, IntegerType, DecimalType)
-import myria
+import locale
 import StringIO
 from struct import Struct
 
+from messytables import (any_tableset, headers_guess, headers_processor,
+                         offset_processor, type_guess, types_processor)
+from messytables import (StringType, IntegerType, DecimalType)
+
+import myria
+
 # Set the log level here
-# logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.INFO)
 
 
 def pretty_json(obj):
@@ -38,6 +41,14 @@ def parse_args(argv=None):
         except:
             raise argparse.ArgumentTypeError('invalid port [1, 65535]: %s' % p)
 
+    def set_locale(name):
+        try:
+            locale.setlocale(locale.LC_ALL, '{name}.UTF-8'.format(name=name))
+        except:
+            raise argparse.ArgumentTypeError('invalid locale: %s' % name)
+        else:
+            return name
+
     parser.add_argument('--port', '-p', help="Myria REST server port",
                         default=1776, type=check_valid_port)
 
@@ -50,6 +61,9 @@ def parse_args(argv=None):
                         type=str, default="adhoc")
     parser.add_argument('--relation', help="Relation name",
                         type=str, required=True)
+    parser.add_argument('--locale', '-l',
+                        help="locale to improve number guessing",
+                        type=set_locale)
 
     parser.add_argument('--overwrite', '-o', help="Overwrite existing data",
                         action='store_true')
@@ -73,7 +87,7 @@ def messy_to_schema(types, headers=None):
     if not headers:
         headers = ["column{}".format(i) for i in range(len(types))]
     else:
-        headers = [str(t) for t in headers]
+        headers = [str(t).strip() for t in headers]
     assert len(headers) == len(types)
     logging.info("Schema = {}".format(zip(types, headers)))
     return {'columnTypes': types, 'columnNames': headers}
@@ -132,11 +146,31 @@ def write_data(row_set, schema):
         kwargs = {'binary': True, 'is_little_endian': True}
     else:
         # File is plaintext
-        logging.info("Creating a plaintext file")
         write_plaintext(row_set, output)
         kwargs = {}
 
     return output.getvalue(), kwargs
+
+
+def strip_processor():
+    """remove spaces around all strings"""
+    def apply_replace(row_set, row):
+        def replace(cell):
+            if isinstance(cell.value, basestring):
+                cell.value = cell.value.strip()
+            return cell
+        return [replace(cell) for cell in row]
+    return apply_replace
+
+
+def replace_empty_string(sample):
+    """replace empty strings with a non empty string to force
+    type guessing to use string"""
+    def replace(cell):
+        if cell.value == '':
+            cell.value = 'empty_string'
+        return cell
+    return [[replace(cell) for cell in row] for row in sample]
 
 
 def main(argv=None):
@@ -153,12 +187,13 @@ def main(argv=None):
 
     # guess header names and the offset of the header:
     offset, headers = headers_guess(row_set.sample)
+    row_set.register_processor(strip_processor())
     row_set.register_processor(headers_processor(headers))
     # Temporarily, mark the offset of the header
     row_set.register_processor(offset_processor(offset + 1))
 
     # guess types and register them
-    types = type_guess(row_set.sample, strict=True,
+    types = type_guess(replace_empty_string(row_set.sample), strict=True,
                        types=[StringType, DecimalType, IntegerType])
     row_set.register_processor(types_processor(types))
 
@@ -167,18 +202,16 @@ def main(argv=None):
     # 1) offset must be 0
     # 2) if the types of the data match the headers, assume there are
     #    actually no headers
-    no_headers = False
     if offset == 0:
         try:
             vals = [t.cast(v) for (t, v) in zip(types, headers)]
-            no_headers = True
         except:
             pass
-    if no_headers:
-        # We don't need the headers_processor or the offset_processor
-        row_set._processors = []
-        row_set.register_processor(types_processor(types))
-        headers = None
+        else:
+            # We don't need the headers_processor or the offset_processor
+            row_set._processors = []
+            row_set.register_processor(types_processor(types))
+            headers = None
 
     # Construct the Myria schema
     schema = messy_to_schema(types, headers)
