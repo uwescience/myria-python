@@ -175,7 +175,8 @@ def mock_TwitterK(url, request):
             assert schema['columnTypes'] == ['DOUBLE_TYPE', 'DOUBLE_TYPE']
         elif relation_key['relationName'] == 'nulls':
             assert schema['columnNames'] == ['field1', 'field2', 'field3']
-            assert schema['columnTypes'] == ['LONG_TYPE', 'STRING_TYPE', 'STRING_TYPE']
+            assert (schema['columnTypes'] ==
+                    ['LONG_TYPE', 'STRING_TYPE', 'STRING_TYPE'])
         else:
             assert False
         return jstr("ok")
