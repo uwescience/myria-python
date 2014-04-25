@@ -2,7 +2,7 @@ from httmock import urlmatch, HTTMock
 from json import dumps as jstr, loads
 from myria.cmd import upload_file
 from myria.errors import MyriaError
-import unittest
+from nose.tools import eq_, assert_raises
 import sys
 
 
@@ -20,22 +20,22 @@ class QuietStderr:
         sys.stderr = self.old_stderr
 
 
-class TestCmd(unittest.TestCase):
+class TestCmd():
     def test_parse_bad_args(self):
         with QuietStderr():
             # Missing one or both required arguments
-            with self.assertRaises(SystemExit):
+            with assert_raises(SystemExit):
                 args = upload_file.parse_args()
-            with self.assertRaises(SystemExit):
+            with assert_raises(SystemExit):
                 args = upload_file.parse_args(['--relation', 'tmp'])
-            with self.assertRaises(SystemExit):
+            with assert_raises(SystemExit):
                 try:
                     args = upload_file.parse_args(['nosuchfile'])
                 except IOError:
                     raise SystemExit()
 
             # Illegal file
-            with self.assertRaises(SystemExit):
+            with assert_raises(SystemExit):
                 try:
                     args = upload_file.parse_args(['--relation', 'tmp',
                                                    'nosuchfile'])
@@ -43,15 +43,15 @@ class TestCmd(unittest.TestCase):
                     raise SystemExit()
 
             # Bad port
-            with self.assertRaises(SystemExit):
+            with assert_raises(SystemExit):
                 args = upload_file.parse_args(['--relation', 'tmp',
                                                '--port', 'abc',
                                                'testdata/TwitterK.csv'])
-            with self.assertRaises(SystemExit):
+            with assert_raises(SystemExit):
                 args = upload_file.parse_args(['--relation', 'tmp',
                                                '--port', '-1',
                                                'testdata/TwitterK.csv'])
-            with self.assertRaises(SystemExit):
+            with assert_raises(SystemExit):
                 args = upload_file.parse_args(['--relation', 'tmp',
                                                '--port', '65536',
                                                'testdata/TwitterK.csv'])
@@ -59,13 +59,13 @@ class TestCmd(unittest.TestCase):
     def test_parse_good_args(self):
         args = upload_file.parse_args(['--relation', 'tmp',
                                        'testdata/TwitterK.csv'])
-        self.assertEquals(args.hostname, 'rest.myria.cs.washington.edu')
-        self.assertEquals(args.port, 1776)
-        self.assertEquals(args.program, 'adhoc')
-        self.assertEquals(args.user, 'public')
-        self.assertEquals(args.program, 'adhoc')
-        self.assertEquals(args.relation, 'tmp')
-        self.assertEquals(args.overwrite, False)
+        eq_(args.hostname, 'rest.myria.cs.washington.edu')
+        eq_(args.port, 1776)
+        eq_(args.program, 'adhoc')
+        eq_(args.user, 'public')
+        eq_(args.program, 'adhoc')
+        eq_(args.relation, 'tmp')
+        eq_(args.overwrite, False)
 
         args = upload_file.parse_args(['--relation', 'tmp',
                                        '--program', 'face',
@@ -74,12 +74,12 @@ class TestCmd(unittest.TestCase):
                                        '--hostname', 'localhost',
                                        '--port', '12345',
                                        'testdata/TwitterK.csv'])
-        self.assertEquals(args.hostname, 'localhost')
-        self.assertEquals(args.port, 12345)
-        self.assertEquals(args.user, 'mom')
-        self.assertEquals(args.program, 'face')
-        self.assertEquals(args.relation, 'tmp')
-        self.assertEquals(args.overwrite, True)
+        eq_(args.hostname, 'localhost')
+        eq_(args.port, 12345)
+        eq_(args.user, 'mom')
+        eq_(args.program, 'face')
+        eq_(args.relation, 'tmp')
+        eq_(args.overwrite, True)
 
     def test_TwitterK_csv(self):
         with HTTMock(mock_TwitterK):
@@ -93,7 +93,7 @@ class TestCmd(unittest.TestCase):
 
     def test_existing_file(self):
         with HTTMock(mock_TwitterK):
-            with self.assertRaises(MyriaError):
+            with assert_raises(MyriaError):
                 upload_file.main(['--relation', 'TwitterK',
                                   '--program', 'testp',
                                   '--user', 'test',
@@ -141,6 +141,28 @@ class TestCmd(unittest.TestCase):
                               '--port', '12345',
                               'testdata/nulls.txt'])
 
+    def test_locale_us(self):
+        with HTTMock(mock_TwitterK):
+            upload_file.main(['--relation', 'us',
+                              '--program', 'testp',
+                              '--user', 'test',
+                              '--overwrite',
+                              '--hostname', 'localhost',
+                              '--port', '12345',
+                              '--locale', 'en_US',
+                              'testdata/us.txt'])
+
+    def test_locale_de(self):
+        with HTTMock(mock_TwitterK):
+            upload_file.main(['--relation', 'de',
+                              '--program', 'testp',
+                              '--user', 'test',
+                              '--overwrite',
+                              '--hostname', 'localhost',
+                              '--port', '12345',
+                              '--locale', 'de_DE',
+                              'testdata/de.txt'])
+
 
 def get_field(fields, name):
     (name, value, content_type) = fields[name]
@@ -159,24 +181,27 @@ def mock_TwitterK(url, request):
         if not overwrite:
             return {'status_code': 409,
                     'content': 'That dataset already exists.'}
-        assert relation_key['userName'] == 'test'
-        assert relation_key['programName'] == 'testp'
+        eq_(relation_key['userName'], 'test')
+        eq_(relation_key['programName'], 'testp')
         if relation_key['relationName'] == 'TwitterK':
-            assert schema['columnNames'] == ['src', 'dst']
-            assert schema['columnTypes'] == ['LONG_TYPE', 'LONG_TYPE']
+            eq_(schema['columnNames'], ['src', 'dst'])
+            eq_(schema['columnTypes'], ['LONG_TYPE', 'LONG_TYPE'])
         elif relation_key['relationName'] == 'TwitterKnoheader':
-            assert schema['columnNames'] == ['column0', 'column1']
-            assert schema['columnTypes'] == ['LONG_TYPE', 'LONG_TYPE']
+            eq_(schema['columnNames'], ['column0', 'column1'])
+            eq_(schema['columnTypes'], ['LONG_TYPE', 'LONG_TYPE'])
         elif relation_key['relationName'] == 'plaintext':
-            assert schema['columnNames'] == ['number', 'value']
-            assert schema['columnTypes'] == ['LONG_TYPE', 'STRING_TYPE']
+            eq_(schema['columnNames'], ['number', 'value'])
+            eq_(schema['columnTypes'], ['LONG_TYPE', 'STRING_TYPE'])
         elif relation_key['relationName'] == 'float':
-            assert schema['columnNames'] == ['field1', 'field2']
-            assert schema['columnTypes'] == ['DOUBLE_TYPE', 'DOUBLE_TYPE']
+            eq_(schema['columnNames'], ['field1', 'field2'])
+            eq_(schema['columnTypes'], ['DOUBLE_TYPE', 'DOUBLE_TYPE'])
         elif relation_key['relationName'] == 'nulls':
-            assert schema['columnNames'] == ['field1', 'field2', 'field3']
-            assert (schema['columnTypes'] ==
-                    ['LONG_TYPE', 'STRING_TYPE', 'STRING_TYPE'])
+            eq_(schema['columnNames'], ['field1', 'field2', 'field3'])
+            eq_(schema['columnTypes'],
+                ['LONG_TYPE', 'STRING_TYPE', 'STRING_TYPE'])
+        elif relation_key['relationName'] in ['us', 'de']:
+            eq_(schema['columnNames'], ['field1', 'field2'])
+            eq_(schema['columnTypes'], ['DOUBLE_TYPE', 'LONG_TYPE'])
         else:
             assert False
         return jstr("ok")

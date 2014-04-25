@@ -43,7 +43,8 @@ def parse_args(argv=None):
 
     def set_locale(name):
         try:
-            locale.setlocale(locale.LC_ALL, '{name}.UTF-8'.format(name=name))
+            locale.setlocale(
+                locale.LC_NUMERIC, '{name}.UTF-8'.format(name=name))
         except:
             raise argparse.ArgumentTypeError('invalid locale: %s' % name)
         else:
@@ -210,6 +211,7 @@ def main(argv=None):
         else:
             # We don't need the headers_processor or the offset_processor
             row_set._processors = []
+            row_set.register_processor(strip_processor())
             row_set.register_processor(types_processor(types))
             headers = None
 
