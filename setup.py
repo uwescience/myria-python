@@ -10,7 +10,7 @@ setup(
     url='https://github.com/uwescience/myria',
     description='Python interface for Myria.',
     long_description=open('README.rst').read(),
-    install_requires=["requests", "requests_toolbelt", "messytables"],
+    install_requires=["requests", "requests_toolbelt", "messytables", "unicodecsv"],
     entry_points={
         'console_scripts': [
             'myria_upload = myria.cmd.upload_file:main'
