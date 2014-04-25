@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import csv
+import unicodecsv as csv
 import json
 import logging
 import locale
