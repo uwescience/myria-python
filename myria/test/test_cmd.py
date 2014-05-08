@@ -3,6 +3,7 @@ from json import dumps as jstr, loads
 from myria.cmd import upload_file
 from myria.errors import MyriaError
 from nose.tools import eq_, assert_raises
+from scripttest import TestFileEnvironment
 import sys
 
 
@@ -21,13 +22,20 @@ class QuietStderr:
 
 
 class TestCmd():
+    def test_script(self):
+        with HTTMock(mock_TwitterK):
+            env = TestFileEnvironment('myria_upload')
+            res = env.run('''myria_upload --relation TwitterK --program test
+                          --overwrite --hostname localhost
+                          --port 12345 --dry''', stdin='foo,bar\n1,b\n3,c',
+                          expect_stderr=True)
+            eq_(res.stdout, '''1,b\n3,c\n''')
+
     def test_parse_bad_args(self):
         with QuietStderr():
             # Missing one or both required arguments
             with assert_raises(SystemExit):
                 args = upload_file.parse_args()
-            with assert_raises(SystemExit):
-                args = upload_file.parse_args(['--relation', 'tmp'])
             with assert_raises(SystemExit):
                 try:
                     args = upload_file.parse_args(['nosuchfile'])
