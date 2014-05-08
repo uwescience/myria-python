@@ -5,7 +5,8 @@ import json
 import logging
 import locale
 import sys
-import StringIO
+import io
+import cStringIO
 from struct import Struct
 
 import unicodecsv as csv
@@ -55,7 +56,7 @@ def parse_args(argv=None):
                         default=1776, type=check_valid_port)
 
     parser.add_argument('file', help="File to be uploaded",
-                        default=sys.stdin, nargs='?',
+                        default=None, nargs='?',
                         type=argparse.FileType('rb'))
 
     parser.add_argument('--user', help="User who owns the relation",
@@ -67,9 +68,10 @@ def parse_args(argv=None):
     parser.add_argument('--locale', '-l',
                         help="locale to improve number guessing",
                         type=set_locale)
-
     parser.add_argument('--overwrite', '-o', help="Overwrite existing data",
-                        action='store_true')
+                        action='store_true', default=False)
+    parser.add_argument('--dry', '-d', help="Output parsed results to stdout",
+                        action='store_true', default=False)
 
     return parser.parse_args(argv)
 
@@ -140,7 +142,7 @@ def write_plaintext(row_set, output):
 def write_data(row_set, schema):
     """Given a row_set and schema, return (data, kwargs) for sending
     to Myria."""
-    output = StringIO.StringIO()
+    output = cStringIO.StringIO()
 
     if all(type_ in ['INT_TYPE', 'LONG_TYPE', 'FLOAT_TYPE', 'DOUBLE_TYPE']
            for type_ in schema['columnTypes']):
@@ -179,6 +181,11 @@ def replace_empty_string(sample):
 def main(argv=None):
     args = parse_args(argv)
 
+    if args.file is None:
+        # slurp the whole input since there seems to be a bug in messytables
+        # which should be able to handle streams but doesn't
+        args.file = cStringIO.StringIO(sys.stdin.read())
+
     relation_key = args_to_relation_key(args)
 
     table_set = any_tableset(args.file)
@@ -207,7 +214,7 @@ def main(argv=None):
     #    actually no headers
     if offset == 0:
         try:
-            vals = [t.cast(v) for (t, v) in zip(types, headers)]
+            [t.cast(v) for (t, v) in zip(types, headers)]
         except:
             pass
         else:
@@ -224,9 +231,13 @@ def main(argv=None):
     # Prepare data for writing to Myria
     data, kwargs = write_data(row_set, schema)
 
-    # Connect to Myria and send the data
-    connection = myria.MyriaConnection(hostname=args.hostname, port=args.port)
-    ret = connection.upload_file(relation_key, schema, data,
-                                 args.overwrite, **kwargs)
+    if not args.dry:
+        # Connect to Myria and send the data
+        connection = myria.MyriaConnection(
+            hostname=args.hostname, port=args.port)
+        ret = connection.upload_file(relation_key, schema, data,
+                                     args.overwrite, **kwargs)
 
-    print pretty_json(ret)
+        print pretty_json(ret)
+    else:
+        sys.stdout.write(data)
