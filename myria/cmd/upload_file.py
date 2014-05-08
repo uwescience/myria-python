@@ -5,7 +5,6 @@ import json
 import logging
 import locale
 import sys
-import io
 import cStringIO
 from struct import Struct
 
