@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 import argparse
-import unicodecsv as csv
 import json
 import logging
 import locale
+import sys
 import StringIO
 from struct import Struct
 
+import unicodecsv as csv
 from messytables import (any_tableset, headers_guess, headers_processor,
                          offset_processor, type_guess, types_processor)
 from messytables import (StringType, IntegerType, DecimalType)
@@ -54,6 +55,7 @@ def parse_args(argv=None):
                         default=1776, type=check_valid_port)
 
     parser.add_argument('file', help="File to be uploaded",
+                        default=sys.stdin, nargs='?',
                         type=argparse.FileType('rb'))
 
     parser.add_argument('--user', help="User who owns the relation",
