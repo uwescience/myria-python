@@ -27,8 +27,6 @@ class TestCmd():
             with assert_raises(SystemExit):
                 args = upload_file.parse_args()
             with assert_raises(SystemExit):
-                args = upload_file.parse_args(['--relation', 'tmp'])
-            with assert_raises(SystemExit):
                 try:
                     args = upload_file.parse_args(['nosuchfile'])
                 except IOError:
