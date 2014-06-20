@@ -6,3 +6,4 @@
 build/
 dist/
 myria_python.egg-info/
+.idea
