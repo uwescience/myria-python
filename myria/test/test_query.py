@@ -16,7 +16,7 @@ def query_status(query, query_id=17, status='SUCCESS'):
             'queryId': query_id,
             'rawQuery': query['rawQuery'],
             'logicalRa': query['rawQuery'],
-            'physicalPlan': query,
+            'plan': query,
             'submitTime': '2014-02-26T15:19:54.505-08:00',
             'startTime': '2014-02-26T15:19:54.611-08:00',
             'finishTime': '2014-02-26T15:23:34.189-08:00',
