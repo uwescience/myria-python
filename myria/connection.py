@@ -336,6 +336,13 @@ class MyriaConnection(object):
         response = self._make_request(GET, resource_path, accept=CSV)
         return csv.reader(response)
 
+    def rawmyria(self, path, arguments, method=GET):
+        """Pass through requests directly to Myria"""
+        # Not sure which parts of thisare required
+        accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        r = self._make_request(method, path, params=arguments, accept=accept, get_request=True)
+        return r
+
     def queries(self, limit=None, max_=None):
         """Get count and information about all submitted queries.
 
