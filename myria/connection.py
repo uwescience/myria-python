@@ -46,7 +46,8 @@ class MyriaConnection(object):
                  deployment=None,
                  hostname=None,
                  port=None,
-                 timeout=None):
+                 timeout=None,
+                 auth_token=None):
         """Initializes a connection to the Myria REST server.
 
         Args:
@@ -58,6 +59,7 @@ class MyriaConnection(object):
             port: The port of the REST server. May be overwritten if deployment
                 is provided.
             timeout: The timeout for the connection to myria.
+            auth_token: An authorization token
         """
         # Parse the deployment file and, if present, override the hostname and
         # port with any provided values from deployment.
@@ -69,6 +71,8 @@ class MyriaConnection(object):
         self._url_start = 'http://{}:{}'.format(hostname, port)
         self._session = requests.Session()
         self._session.headers.update(self._DEFAULT_HEADERS)
+        if auth_token:
+            self._session.headers.update({"Myria-Auth": auth_token})
 
     def _finish_async_request(self, method, url, body=None, accept=JSON):
         headers = {
@@ -105,13 +109,10 @@ class MyriaConnection(object):
             raise MyriaError(e)
 
     def _make_request(self, method, url, body=None, params=None,
-                      accept=JSON, get_request=False, auth=None):
+                      accept=JSON, get_request=False):
         headers = {
             'Accept': accept
         }
-
-        if auth is not None:
-            headers["Myria-Auth"] = auth
 
         try:
             if '://' not in url:
@@ -340,12 +341,12 @@ class MyriaConnection(object):
         response = self._make_request(GET, resource_path, accept=CSV)
         return csv.reader(response)
 
-    def rawmyria(self, path, arguments, method=GET, auth=None):
+    def rawmyria(self, path, arguments, method=GET):
         """Pass through requests directly to Myria"""
         # Not sure which parts of thisare required
         accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
         r = self._make_request(method, path, params=arguments, accept=accept,
-                               get_request=True, auth=auth)
+                               get_request=True)
         return r
 
     def queries(self, limit=None, max_=None):
