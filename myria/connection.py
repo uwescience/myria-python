@@ -105,10 +105,14 @@ class MyriaConnection(object):
             raise MyriaError(e)
 
     def _make_request(self, method, url, body=None, params=None,
-                      accept=JSON, get_request=False):
+                      accept=JSON, get_request=False, auth=None):
         headers = {
             'Accept': accept
         }
+
+        if auth is not None:
+            headers["Myria-Auth"] = auth
+
         try:
             if '://' not in url:
                 url = self._url_start + url
@@ -336,11 +340,12 @@ class MyriaConnection(object):
         response = self._make_request(GET, resource_path, accept=CSV)
         return csv.reader(response)
 
-    def rawmyria(self, path, arguments, method=GET):
+    def rawmyria(self, path, arguments, method=GET, auth=None):
         """Pass through requests directly to Myria"""
         # Not sure which parts of thisare required
         accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-        r = self._make_request(method, path, params=arguments, accept=accept, get_request=True)
+        r = self._make_request(method, path, params=arguments, accept=accept,
+                               get_request=True, auth=auth)
         return r
 
     def queries(self, limit=None, max_=None):
