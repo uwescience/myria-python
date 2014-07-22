@@ -289,9 +289,9 @@ class MyriaConnection(object):
             worker_id: the id of a worker
         """
         status = self.get_query_status(query_id)
-        if 'fragments' in status['physicalPlan']:
+        if 'fragments' in status['plan']:
             fids = []
-            for fragment in status['physicalPlan']['fragments']:
+            for fragment in status['plan']['fragments']:
                 if int(worker_id) in map(int, fragment['workers']):
                     fids.append(fragment['fragmentIndex'])
             return fids
