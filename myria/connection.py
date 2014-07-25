@@ -2,6 +2,7 @@ import base64
 import ConfigParser
 import json
 import csv
+import time
 from time import sleep
 import logging
 
@@ -17,6 +18,10 @@ CSV = 'text/plain'
 GET = 'GET'
 PUT = 'PUT'
 POST = 'POST'
+DELETE = 'DELETE'
+
+# default max allowed time for a query
+DEFAULT_TIME_OUT = 1000
 
 # Enable or configure logging
 logging.basicConfig(level=logging.WARN)
@@ -70,10 +75,12 @@ class MyriaConnection(object):
         self._session = requests.Session()
         self._session.headers.update(self._DEFAULT_HEADERS)
 
-    def _finish_async_request(self, method, url, body=None, accept=JSON):
+    def _finish_async_request(self, method, url, body=None,
+                              accept=JSON, timeout=DEFAULT_TIME_OUT):
         headers = {
             'Accept': accept
         }
+        start_time = time.time()
         try:
             while True:
                 if '://' not in url:
@@ -96,6 +103,26 @@ class MyriaConnection(object):
                     # response.read()
                     # Sleep 100 ms before re-issuing the request
                     sleep(0.1)
+                    # if time out, kill the query
+                    if(time.time() - start_time > timeout):
+                        status = r.json()
+                        query_id = status["queryId"]
+                        # kill the query and make retur
+                        while True:
+                            try:
+                                self.kill_query(query_id)
+                                qstatus = self.get_query_status(query_id)
+                                if qstatus["status"] == 'KILLED':
+                                    raise MyriaError(
+                                        'Error: query %d timeout' % query_id)
+                                elif qstatus["status"] == 'KILLING':
+                                    sleep(0.1)
+                                else:
+                                    raise MyriaError(
+                                        "Error in killing %d" % query_id)
+                            except MyriaError:
+                                raise MyriaError(
+                                    'Error: query %d timeout' % query_id)
                 else:
                     raise MyriaError('Error %d: %s'
                                      % (r.status_code, r.text))
@@ -270,6 +297,11 @@ class MyriaConnection(object):
 
         body = json.dumps(query)
         return self._make_request(POST, '/query/validate', body)
+
+    def kill_query(self, query_id):
+        """Kill a query and wait for the killing is done."""
+        resource_path = '/query/query-%d' % int(query_id)
+        return self._make_request(DELETE, resource_path)
 
     def get_query_status(self, query_id):
         """Get the status of a submitted query.
