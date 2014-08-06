@@ -21,7 +21,7 @@ POST = 'POST'
 DELETE = 'DELETE'
 
 # default max allowed time for a query
-DEFAULT_TIME_OUT = 1000
+DEFAULT_TIME_OUT = 900
 
 # Enable or configure logging
 logging.basicConfig(level=logging.WARN)
@@ -365,6 +365,19 @@ class MyriaConnection(object):
         """
         resource_path = '/logs/profilingroots?queryId=%d&fragmentId=%d' % (int(
             query_id), int(fragment_id))
+        response = self._make_request(GET, resource_path, accept=CSV)
+        return csv.reader(response)
+
+    def get_resource_log(self, query_id, fragment_id=None):
+        """Get the logs for operators.
+
+        Args:
+            query_id: the id of a submitted query
+            fragment_id: the id of a fragment
+        """
+        resource_path = '/logs/resourceUsage-%d' % int(query_id)
+        if fragment_id is not None:
+            resource_path += '&fragmentId=%d' % int(fragment_id)
         response = self._make_request(GET, resource_path, accept=CSV)
         return csv.reader(response)
 
