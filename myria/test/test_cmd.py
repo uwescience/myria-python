@@ -29,6 +29,7 @@ class TestCmd():
                           --overwrite --hostname localhost
                           --port 12345 --dry''', stdin='foo,bar\n1,b\n3,c',
                           expect_stderr=True)
+            print res.stderr
             eq_(res.stdout, '''1,b\n3,c\n''')
 
     def test_parse_bad_args(self):
@@ -74,6 +75,7 @@ class TestCmd():
         eq_(args.program, 'adhoc')
         eq_(args.relation, 'tmp')
         eq_(args.overwrite, False)
+        eq_(args.ssl, True)
 
         args = upload_file.parse_args(['--relation', 'tmp',
                                        '--program', 'face',
@@ -81,6 +83,7 @@ class TestCmd():
                                        '--overwrite',
                                        '--hostname', 'localhost',
                                        '--port', '12345',
+                                       '--no-ssl',
                                        'testdata/TwitterK.csv'])
         eq_(args.hostname, 'localhost')
         eq_(args.port, 12345)
@@ -88,6 +91,7 @@ class TestCmd():
         eq_(args.program, 'face')
         eq_(args.relation, 'tmp')
         eq_(args.overwrite, True)
+        eq_(args.ssl, False)
 
     def test_TwitterK_csv(self):
         with HTTMock(mock_TwitterK):

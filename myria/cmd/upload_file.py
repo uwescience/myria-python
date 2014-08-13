@@ -25,22 +25,36 @@ def pretty_json(obj):
 
 def parse_args(argv=None):
     """Parse the arguments for this program"""
-    parser = argparse.ArgumentParser(description='Upload a plaintext dataset to Myria',  # noqa
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)   # noqa
+    parser = argparse.ArgumentParser(
+        description='Upload a plaintext dataset to Myria')
 
     # Hostname
-    parser.add_argument('--hostname', '-n', help="Myria REST server hostname",
+    parser.add_argument('--hostname', '-n',
+                        help="Override Myria REST server hostname",
                         default='rest.myria.cs.washington.edu')
 
     # Port
     def check_valid_port(p):
-        "True if p is a valid port number"
+        """True if p is a valid port number"""
         try:
             p = int(p)
-            assert p > 0 and p < 65536
+            assert 0 < p < 65536
             return p
         except:
             raise argparse.ArgumentTypeError('invalid port [1, 65535]: %s' % p)
+    parser.add_argument('--port', '-p', help="Override Myria REST server port",
+                        default=1776, type=check_valid_port)
+
+    # SSL or not (HTTPS or HTTP)
+    parser.add_argument('--ssl', help="Use SSL (HTTPS) (default: SSL)",
+                        dest="ssl", action="store_true")
+    parser.add_argument('--no-ssl',
+                        help="Do not use SSL (HTTP) (default: SSL)",
+                        dest="ssl", action="store_false")
+    parser.set_defaults(ssl=True)
+
+    parser.add_argument('file', help="File to be uploaded (default: stdin)",
+                        nargs='?', type=argparse.FileType('rb'))
 
     def set_locale(name):
         try:
@@ -51,32 +65,30 @@ def parse_args(argv=None):
         else:
             return name
 
-    parser.add_argument('--port', '-p', help="Myria REST server port",
-                        default=1776, type=check_valid_port)
-
-    parser.add_argument('file', help="File to be uploaded",
-                        default=None, nargs='?',
-                        type=argparse.FileType('rb'))
-
-    parser.add_argument('--user', help="User who owns the relation",
-                        type=str, default="public")
-    parser.add_argument('--program', help="Program that owns the relation",
-                        type=str, default="adhoc")
-    parser.add_argument('--relation', help="Relation name",
-                        type=str, required=True)
     parser.add_argument('--locale', '-l',
                         help="locale to improve number guessing",
                         type=set_locale)
-    parser.add_argument('--overwrite', '-o', help="Overwrite existing data",
+
+    parser.add_argument('--overwrite', '-o',
+                        help="Overwrite existing data (default: False)",
                         action='store_true', default=False)
     parser.add_argument('--dry', '-d', help="Output parsed results to stdout",
                         action='store_true', default=False)
+
+    parser.add_argument('--user',
+                        help="User who owns the relation (default:public)",
+                        type=str, default="public")
+    parser.add_argument('--program',
+                        help="Program that owns the relation (default: adhoc)",
+                        type=str, default="adhoc")
+    parser.add_argument('--relation', help="Relation name",
+                        type=str, required=True)
 
     return parser.parse_args(argv)
 
 
 def convert_type(type_):
-    "Convert a MessyTables type to a Myria type."
+    """Convert a MessyTables type to a Myria type."""
     if isinstance(type_, StringType):
         return "STRING_TYPE"
     elif isinstance(type_, IntegerType):
@@ -98,7 +110,7 @@ def messy_to_schema(types, headers=None):
 
 
 def args_to_relation_key(args):
-    "return the Myria relation key"
+    """return the Myria relation key"""
     logging.info("RelationKey = {}:{}:{}".format(args.user,
                                                  args.program,
                                                  args.relation))
@@ -108,7 +120,7 @@ def args_to_relation_key(args):
 
 
 def type_fmt(type_):
-    "Return the Python struct marker for the type"
+    """Return the Python struct marker for the type"""
     if type_ == 'INT_TYPE':
         return 'i'
     elif type_ == 'LONG_TYPE':
@@ -233,7 +245,7 @@ def main(argv=None):
     if not args.dry:
         # Connect to Myria and send the data
         connection = myria.MyriaConnection(
-            hostname=args.hostname, port=args.port)
+            hostname=args.hostname, port=args.port, ssl=args.ssl)
         ret = connection.upload_file(relation_key, schema, data,
                                      args.overwrite, **kwargs)
 
