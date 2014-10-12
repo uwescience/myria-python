@@ -198,10 +198,10 @@ class MyriaConnection(object):
 
     def download_dataset(self, relation_key):
         """Download the data in the dataset as json"""
-        return self._wrap_get('/dataset/user-{}/program-{}/relation-{}/data'.format(
-                              relation_key['userName'],
-                              relation_key['programName'],
-                              relation_key['relationName']),
+        return self._wrap_get('/dataset/user-{}/program-{}/relation-{}/data'
+                              .format(relation_key['userName'],
+                                      relation_key['programName'],
+                                      relation_key['relationName']),
                               params={'format': 'json'})
 
     @staticmethod
