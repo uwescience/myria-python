@@ -46,6 +46,7 @@ class MyriaConnection(object):
                  deployment=None,
                  hostname=None,
                  port=None,
+                 ssl=False,
                  timeout=None):
         """Initializes a connection to the Myria REST server.
 
@@ -66,7 +67,11 @@ class MyriaConnection(object):
             hostname = hostname or rest_config[0]
             port = port or rest_config[1]
 
-        self._url_start = 'http://{}:{}'.format(hostname, port)
+        if ssl:
+            uri_scheme = "https"
+        else:
+            uri_scheme = "http"
+        self._url_start = '{}://{}:{}'.format(uri_scheme, hostname, port)
         self._session = requests.Session()
         self._session.headers.update(self._DEFAULT_HEADERS)
 
