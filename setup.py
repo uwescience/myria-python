@@ -9,7 +9,7 @@ setup(
     scripts=[],
     url='https://github.com/uwescience/myria',
     description='Python interface for Myria.',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     install_requires=["requests", "requests_toolbelt", "messytables", "unicodecsv"],
     entry_points={
         'console_scripts': [
