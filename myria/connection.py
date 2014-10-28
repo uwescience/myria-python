@@ -245,6 +245,35 @@ class MyriaConnection(object):
 
         return self._make_request(POST, '/dataset', json.dumps(body))
 
+    @staticmethod
+    def execute_program(program, language="MyriaL"):
+        """Execute the program in the specified language on Myria, polling
+        its status until the query is finished. Returns the query status
+        struct.
+
+        Args:
+            program: a Myria program as a string.
+            language: the language in which the program is written
+                      (default: MyriaL).
+        """
+
+        body = {"query": program, "language": language}
+        r = requests.post("https://demo.myria.cs.washington.edu/execute",
+                          data=body)
+        if r.status_code != 201:
+            raise MyriaError(r)
+
+        query_uri = r.json()['url']
+        while True:
+            r = requests.get(query_uri)
+            if r.status_code == 200:
+                return r.json()
+            elif r.status_code == 202:
+                # Sleep 100 ms before re-checking the status
+                sleep(0.1)
+                continue
+            raise MyriaError(r)
+
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
         to be polled.
