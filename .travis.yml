@@ -4,7 +4,6 @@ python:
 before_install:
   - sudo locale-gen de_DE.UTF-8
 install:
-  - export PIP_USE_MIRRORS=true
   - pip install -r requirements-dev.txt
   - python setup.py install
   - pip install coveralls
