@@ -148,7 +148,7 @@ class MyriaConnection(object):
 
         if '://' not in selector:
             selector = self._url_start + selector
-        r = self._session.get(selector)
+        r = self._session.get(selector, params=params)
         if r.status_code in status:
             return r.json()
         elif r.status_code in accepted:
