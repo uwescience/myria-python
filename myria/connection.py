@@ -246,7 +246,7 @@ class MyriaConnection(object):
         return self._make_request(POST, '/dataset', json.dumps(body))
 
     @staticmethod
-    def execute_program(program, language="MyriaL"):
+    def execute_program(program, language="MyriaL", server="https://demo.myria.cs.washington.edu/execute"):
         """Execute the program in the specified language on Myria, polling
         its status until the query is finished. Returns the query status
         struct.
@@ -258,8 +258,7 @@ class MyriaConnection(object):
         """
 
         body = {"query": program, "language": language}
-        r = requests.post("https://demo.myria.cs.washington.edu/execute",
-                          data=body)
+        r = requests.post(server, data=body)
         if r.status_code != 201:
             raise MyriaError(r)
 
