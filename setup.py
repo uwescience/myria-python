@@ -11,7 +11,7 @@ setup(
     description='Python interface for Myria.',
     long_description=open('README.md').read(),
     # see https://stackoverflow.com/questions/18578439
-    install_requires=["pyOpenSSL", "ndg-httpsclient", "pyasn1", "requests",
+    install_requires=["pyOpenSSL >= 0.14", "ndg-httpsclient", "pyasn1", "requests",
         "requests_toolbelt", "messytables", "unicodecsv"],
     entry_points={
         'console_scripts': [
