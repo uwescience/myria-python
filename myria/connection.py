@@ -236,7 +236,7 @@ class MyriaConnection(object):
         data = base64.b64encode(fp.read())
         source = {'dataType': 'Bytes',
                   'bytes': data}
-        self.upload_source(relation_key, schema, source)
+        return self.upload_source(relation_key, schema, source)
 
     def upload_source(self, relation_key, schema, source):
         body = {'relationKey': self._ensure_relation_key(relation_key),
