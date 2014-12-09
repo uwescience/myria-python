@@ -370,7 +370,7 @@ class MyriaConnection(object):
         response = self._make_request(GET, resource_path, accept=CSV)
         return csv.reader(response)
 
-    def queries(self, limit=None, max_=None):
+    def queries(self, limit=None, max_=None, q=None):
         """Get count and information about all submitted queries.
 
         Args:
@@ -384,6 +384,8 @@ class MyriaConnection(object):
             args['limit'] = limit
         if max_ is not None:
             args['max'] = max_
+        if q is not None:
+            args['q'] = q
         r = (self._make_request(GET, resource_path,
              params=args, get_request=True))
         count = r.headers.get('x-count')
