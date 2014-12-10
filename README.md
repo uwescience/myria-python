@@ -11,3 +11,11 @@ Myria Python
 
 
 A Python library for exercising Myria's REST interface.
+
+## Installation
+
+Users can just install this using `pip install myria-python`. Developers should clone the repository and run `python setup.py develop`.
+
+## Usage
+
+Myria python can either be used as a library for a python program. Check the source code for a list of available function. To use the myria uploader binary, run `myria_upload`. Append `-h` to see available commands. 
