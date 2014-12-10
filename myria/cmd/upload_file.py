@@ -249,6 +249,6 @@ def main(argv=None):
         ret = connection.upload_file(relation_key, schema, data,
                                      args.overwrite, **kwargs)
 
-        print pretty_json(ret)
+        sys.stdout.write(pretty_json(ret))
     else:
         sys.stdout.write(data)
