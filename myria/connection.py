@@ -370,25 +370,20 @@ class MyriaConnection(object):
         response = self._make_request(GET, resource_path, accept=CSV)
         return csv.reader(response)
 
-    def queries(self, limit=None, max_=None):
+    def queries(self, **kwargs):
         """Get count and information about all submitted queries.
 
         Args:
             limit: the maximum number of query status results to return.
-            max_: the maximum query ID to return.
+            max: the maximum query ID to return.
+            min: the minimum query ID to return. Ignored if max_ is present.
+            q: a text search for the raw query string.
         """
 
         resource_path = '/query'
-        args = {}
-        if limit is not None:
-            args['limit'] = limit
-        if max_ is not None:
-            args['max'] = max_
-        r = (self._make_request(GET, resource_path,
-             params=args, get_request=True))
-        count = r.headers.get('x-count')
-        assert count is not None, "Missing header: x-count"
-        return int(count), r.json()
+        r = self._make_request(GET, resource_path, params=kwargs,
+                               get_request=True)
+        return r.json()
 
     def upload_file(self, relation_key, schema, data, overwrite=None,
                     delimiter=None, binary=None, is_little_endian=None):
