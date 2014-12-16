@@ -376,7 +376,8 @@ class MyriaConnection(object):
         Args:
             limit: the maximum number of query status results to return.
             max_id: the maximum query ID to return.
-            min_id: the minimum query ID to return. Ignored if max_ is present.
+            min_id: the minimum query ID to return. Ignored if max_id is
+                    present.
             q: a text search for the raw query string.
         """
         params = {}
