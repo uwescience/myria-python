@@ -1,5 +1,4 @@
 from httmock import urlmatch, HTTMock
-from json import dumps as jstr
 import unittest
 from myria import MyriaConnection
 
@@ -30,11 +29,9 @@ query_counter = 0
 @urlmatch(netloc=r'localhost:12345')
 def local_mock(url, request):
     global query_counter
-    if url.path == '/query':
+    if url.path == '/query' and request.method == 'POST':
         body = query_status(query(), 17, 'ACCEPTED')
-        headers = {
-            'Location': 'http://localhost:12345/query/query-17',
-            'X-Count': 42}
+        headers = {'Location': 'http://localhost:12345/query/query-17'}
         query_counter = 2
         return {'status_code': 202, 'content': body, 'headers': headers}
     elif url.path == '/query/query-17':
@@ -52,6 +49,11 @@ def local_mock(url, request):
                 'headers': headers}
     elif url.path == '/query/validate':
         return request.body
+    elif url.path == '/query' and request.method == 'GET':
+        body = {'max': 17, 'min': 1,
+                'results': [query_status(query(), 17, 'ACCEPTED'),
+                            query_status(query(), 11, 'SUCCESS')]}
+        return {'status_code': 200, 'content': body}
 
     return None
 
@@ -89,5 +91,7 @@ class TestQuery(unittest.TestCase):
 
     def x_test_queries(self):
         with HTTMock(local_mock):
-            count, _ = self.connection.queries()
-            self.assertEquals(42, count)
+            result = self.connection.queries()
+            self.assertEquals(result['max'], 17)
+            self.assertEquals(result['min'], 1)
+            self.assertEquals(result['results'][0]['queryId'], 17)
