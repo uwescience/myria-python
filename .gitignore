@@ -8,3 +8,4 @@ dist/
 myria_python.egg-info/
 .idea
 .scripttest*txt
+requests-*.egg/
