@@ -315,6 +315,18 @@ class MyriaConnection(object):
         resource_path = '/query/query-%d' % int(query_id)
         return self._make_request(GET, resource_path)
 
+    def get_query_plan(self, query_id, subquery_id):
+        """Get the saved execution plan for a submitted query.
+
+        Args:
+            query_id: the id of a submitted query
+            subquery_id: the subquery id within the specified query
+        """
+
+        resource_path = '/query/query-{q}/subquery-{s}'.format(
+            q=int(query_id), s=int(subquery_id))
+        return self._make_request(GET, resource_path)
+
     def get_fragment_ids(self, query_id, worker_id):
         """Get the number of fragments in a query plan.
 
