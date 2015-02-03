@@ -9,5 +9,6 @@ install:
   - pip install coveralls
 script:
   - nosetests --with-coverage --cover-package=myria
+  - bash .travis.sdist.sh
 after_success:
   - coveralls
