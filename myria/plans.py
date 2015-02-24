@@ -53,8 +53,7 @@ def _get_parallel_import_fragment(taskid, schema, relation,
 
                      "relationKey": relation
                      }.items() + (insert_metadata or {}).items())
-              ]
-            }
+              ]}
 
 
 def __increment(value):
