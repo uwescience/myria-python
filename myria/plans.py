@@ -1,38 +1,57 @@
+""" Utilities for generating Myria plans """
+
 from functools import partial
 
-def get_parallel_import_plan(schema, work, relation, text='', 
-                             scan_metadata={}, insert_metadata={}, 
+def get_parallel_import_plan(schema, work, relation, text='',
+                             scan_metadata=None, insert_metadata=None,
                              scan_type='FileScan', insert_type='DbInsert'):
-   return \
-      { "fragments": map(partial(_get_parallel_import_fragment, [0], schema, relation, 
-                                 scan_type, insert_type,
-                                 scan_metadata, insert_metadata), work),
-        "logicalRa": text, 
-        "rawQuery":  text }
+    """ Generate a valid JSON Myria plan for parallel import of data
 
-def _get_parallel_import_fragment(taskid, schema, relation, scan_type, insert_type,
-                                  scan_metadata, insert_metadata, (worker, datasource)):
-  return { "overrideWorkers": [worker],
-           "operators":[
-               dict({
-                  "opId": __increment(taskid),
-                  "opType": scan_type,
+    work: list of (worker-id, data-source) pairs; data-source should be a
+          JSON data source encoding
+    relation: dict containing a qualified Myria relation name
 
-                  "schema": schema.toJson(),
-                  "source": datasource
-               }.items() + scan_metadata.items()),
-               dict({
-                  "opId": __increment(taskid),
-                  "opType": insert_type,
+    Keyword arguments:
+      text: description of the plan
+      scan_metadata: dict of additional operator parameters for the scan
+      insert_metadata: dict of additional operator parameters for the insertion
+      scan_type: type of scan to perform
+      insert_Type: type of insert to perform
+    """
+    return \
+        {"fragments": map(partial(_get_parallel_import_fragment, [0],
+                                  schema, relation,
+                                  scan_type, insert_type,
+                                  scan_metadata, insert_metadata), work),
+         "logicalRa": text,
+         "rawQuery":  text}
 
-                  "argChild": taskid[0]-1,
-                  "argOverwriteTable": True,
+def _get_parallel_import_fragment(taskid, schema, relation,
+                                  scan_type, insert_type,
+                                  scan_metadata, insert_metadata,
+                                  (worker, datasource)):
+    """ Generate a single fragment of the parallel import plan """
+    return {"overrideWorkers": [worker],
+            "operators":[
+                dict({
+                   "opId": __increment(taskid),
+                   "opType": scan_type,
 
-                  "relationKey": relation
-                }.items() + insert_metadata.items())
-             ]
-          }
+                   "schema": schema.to_json(),
+                   "source": datasource
+                }.items() + (scan_metadata or {}).items()),
+                dict({
+                   "opId": __increment(taskid),
+                   "opType": insert_type,
 
-def __increment(id):
-  id[0] += 1
-  return id[0] - 1
+                   "argChild": taskid[0]-1,
+                   "argOverwriteTable": True,
+
+                   "relationKey": relation
+                 }.items() + (insert_metadata or {}).items())
+              ]
+           }
+
+def __increment(value):
+    value[0] += 1
+    return value[0] - 1
