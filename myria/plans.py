@@ -2,6 +2,7 @@
 
 from functools import partial
 
+
 def get_parallel_import_plan(schema, work, relation, text='',
                              scan_metadata=None, insert_metadata=None,
                              scan_type='FileScan', insert_type='DbInsert'):
@@ -24,7 +25,8 @@ def get_parallel_import_plan(schema, work, relation, text='',
                                   scan_type, insert_type,
                                   scan_metadata, insert_metadata), work),
          "logicalRa": text,
-         "rawQuery":  text}
+         "rawQuery": text}
+
 
 def _get_parallel_import_fragment(taskid, schema, relation,
                                   scan_type, insert_type,
@@ -32,25 +34,26 @@ def _get_parallel_import_fragment(taskid, schema, relation,
                                   (worker, datasource)):
     """ Generate a single fragment of the parallel import plan """
     return {"overrideWorkers": [worker],
-            "operators":[
+            "operators": [
                 dict({
-                   "opId": __increment(taskid),
-                   "opType": scan_type,
+                     "opId": __increment(taskid),
+                     "opType": scan_type,
 
-                   "schema": schema.to_json(),
-                   "source": datasource
-                }.items() + (scan_metadata or {}).items()),
+                     "schema": schema.to_json(),
+                     "source": datasource
+                     }.items() + (scan_metadata or {}).items()),
                 dict({
-                   "opId": __increment(taskid),
-                   "opType": insert_type,
+                     "opId": __increment(taskid),
+                     "opType": insert_type,
 
-                   "argChild": taskid[0]-1,
-                   "argOverwriteTable": True,
+                     "argChild": taskid[0] - 1,
+                     "argOverwriteTable": True,
 
-                   "relationKey": relation
-                 }.items() + (insert_metadata or {}).items())
+                     "relationKey": relation
+                     }.items() + (insert_metadata or {}).items())
               ]
            }
+
 
 def __increment(value):
     value[0] += 1

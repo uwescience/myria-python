@@ -3,17 +3,12 @@ from itertools import izip
 from myria import MyriaConnection, MyriaError
 from schema import MyriaSchema
 
+
 class MyriaRelation(object):
     """ Represents a relation in the Myria system """
 
     DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
 
-    # MyriaRelation({'userName': 'public', 'programName': 'adhoc',
-        #'relationName': 'relation'})
-    # or
-    # MyriaRelation('public:adhoc:relation')
-    # or
-    # MyriaRelation('relation') # Defaults are 'public' and 'adhoc'
     def __init__(self, relation, connection=DefaultConnection, schema=None):
         """ Attach to an existing Myria relation, or create a new one
 
@@ -29,14 +24,14 @@ class MyriaRelation(object):
         schema: for a relation that does not yet exist, specify its schema
         """
         self.name = relation if isinstance(relation, basestring) \
-                             else relation.name
+                    else relation.name
         self.components = self._get_name_components(self.name)
         self.connection = connection
         self.qualified_name = self._get_qualified_name(self.components)
         self._schema = schema
         self._metadata = None
 
-        if not self._schema is None and self.is_persisted:
+        if self._schema is not None and self.is_persisted:
             raise MyriaError('New relation specified (schema != None), '
                              ' but it already exists on the server.')
 
@@ -94,7 +89,7 @@ class MyriaRelation(object):
         """ Generate a Myria relation dictionary from a string or list """
         if isinstance(name_or_components, basestring):
             return MyriaRelation._get_qualified_name(
-                     MyriaRelation._get_name_components(name_or_components))
+                MyriaRelation._get_name_components(name_or_components))
         else:
             return dict(izip(('userName', 'programName', 'relationName'),
                              name_or_components[:3]))
