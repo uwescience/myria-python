@@ -24,7 +24,7 @@ class MyriaRelation(object):
         schema: for a relation that does not yet exist, specify its schema
         """
         self.name = relation if isinstance(relation, basestring) \
-                    else relation.name
+            else relation.name
         self.components = self._get_name_components(self.name)
         self.connection = connection
         self.qualified_name = self._get_qualified_name(self.components)
