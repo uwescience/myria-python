@@ -3,6 +3,7 @@ import requests
 from . import MyriaRelation
 import myria.plans
 
+
 class MyriaQuery(object):
     """ Represents a Myria query """
 
@@ -40,12 +41,13 @@ class MyriaQuery(object):
               be local (or locally accessible).
         """
         return MyriaQuery.submit_plan(
-          myria.plans.get_parallel_import_plan(relation.schema,
-            [(wid, {"dataType": "URI", "uri": uri}) for wid, uri in work],
-            relation.qualified_name,
-            text='Parallel Import ' + str(work)),
-          relation.connection,
-          timeout)
+            myria.plans.get_parallel_import_plan(
+                relation.schema,
+                [(wid, {"dataType": "URI", "uri": uri}) for wid, uri in work],
+                relation.qualified_name,
+                text='Parallel Import ' + str(work)),
+            relation.connection,
+            timeout)
 
     @property
     def name(self):
@@ -70,7 +72,7 @@ class MyriaQuery(object):
         """ The current status of the query """
         if not self._status or self._status in self.nonterminal_states:
             self._status = self.connection.get_query_status(
-                             self.query_id)['status']
+                self.query_id)['status']
         return self._status
 
     def to_json(self):
