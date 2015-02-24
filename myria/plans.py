@@ -31,9 +31,11 @@ def get_parallel_import_plan(schema, work, relation, text='',
 def _get_parallel_import_fragment(taskid, schema, relation,
                                   scan_type, insert_type,
                                   scan_metadata, insert_metadata,
-                                  (worker, datasource)):
+                                  assignment):
     """ Generate a single fragment of the parallel import plan """
-    return {"overrideWorkers": [worker],
+    worker_id = assignment[0]
+    datasource = assignment[1]
+    return {"overrideWorkers": [worker_id],
             "operators": [
                 dict({
                      "opId": __increment(taskid),
