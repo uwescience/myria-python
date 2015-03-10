@@ -48,7 +48,7 @@ def _get_parallel_import_fragment(taskid, schema, relation,
                      "opId": __increment(taskid),
                      "opType": insert_type,
 
-                     "argChild": taskid[0] - 1,
+                     "argChild": taskid[0] - 2,
                      "argOverwriteTable": True,
 
                      "relationKey": relation
