@@ -40,7 +40,7 @@ class MyriaRelation(object):
     def to_json(self):
         """ Download this relation as JSON """
         return self.connection.download_dataset(self.qualified_name) \
-            if self.is_persisted else None
+            if self.is_persisted else []
 
     @property
     def schema(self):
