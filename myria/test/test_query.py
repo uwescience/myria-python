@@ -32,8 +32,7 @@ def get_query_dataset(query_id):
     return [{'relationKey': QUALIFIED_NAME,
              'schema': {
                  'columnNames': ['column'],
-                 'columnTypes': ['INT_TYPE']
-                 },
+                 'columnTypes': ['INT_TYPE']},
              'numTuples': 1,
              'queryId': query_id,
              'created': str(QUERY_TIME)}]
