@@ -4,6 +4,7 @@ from httmock import urlmatch, HTTMock
 import unittest
 import requests
 from myria.connection import MyriaConnection
+from myria.schema import MyriaSchema
 from myria.relation import MyriaRelation
 from myria.query import MyriaQuery
 from test_connection_query import query_status
@@ -56,15 +57,28 @@ def local_mock(url, request):
                             status=STATE_RUNNING)
         return {'status_code': 200, 'content': body}
 
-    # Query dataset target
+    # Dataset metadata
     elif url.path == '/dataset':
         body = json.dumps(get_query_dataset(QUERY_ID))
         return {'status_code': 200, 'content': body}
 
     elif url.path == '/dataset/user-public/program-adhoc' \
+                     '/relation-relation':
+        body = str(TUPLES)
+        return {'status_code': 404, 'content': body}
+
+    elif url.path == '/dataset/user-public/program-adhoc' \
                      '/relation-relation/data':
         body = str(TUPLES)
         return {'status_code': 200, 'content': body}
+
+    # Query submission
+    elif url.path == '/query':
+        return {'status_code': 201, 'content': '', 'headers': [('Location', '/query-submitted-uri')]}
+
+    elif url.path == '/query-submitted-uri':
+        body = json.dumps({'queryId': RUNNING_QUERY_ID})
+        return {'status_code': 201, 'content': body, 'headers': [('Location', '/query-submitted-uri')]}
 
     return None
 
@@ -143,3 +157,18 @@ class TestQuery(unittest.TestCase):
                                timeout=1)
             self.assertRaises(requests.Timeout,
                               query.to_json)
+
+    def test_submit_plan(self):
+        with HTTMock(local_mock):
+            plan = 'This is a Myria JSON plan'
+            query = MyriaQuery.submit_plan(plan, connection=self.connection)
+            self.assertEquals(query.status, STATE_RUNNING)
+
+    def test_parallel_import(self):
+        with HTTMock(local_mock):
+            schema = MyriaSchema({'columnNames': ['column'], 'columnTypes': ['INT_TYPE']})
+            relation = MyriaRelation(FULL_NAME, schema=schema, connection=self.connection)
+            work = [('http://input-uri-0', 0), ('http://input-uri-1', 1)]
+
+            query = MyriaQuery.parallel_import(relation, work)
+            self.assertEquals(query.status, STATE_RUNNING)
