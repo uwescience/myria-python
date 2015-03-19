@@ -1,58 +1,69 @@
+from datetime import datetime
+import json
 from httmock import urlmatch, HTTMock
 import unittest
-from myria import MyriaConnection
+import requests
+from myria.connection import MyriaConnection
+from myria.relation import MyriaRelation
+from myria.query import MyriaQuery
+from test_connection_query import query_status
+
+QUERY_ID = -1
+RUNNING_QUERY_ID = 999
+COMPLETED_QUERY_ID = 998
+
+RAW_QUERY = {'rawQuery': 'foo'}
+RELATION_NAME = 'relation'
+FULL_NAME = 'public:adhoc:' + RELATION_NAME
+QUALIFIED_NAME = {'userName': 'public',
+                  'programName': 'adhoc',
+                  'relationName': RELATION_NAME}
+NAME_COMPONENTS = ['public', 'adhoc', RELATION_NAME]
+QUERY_TIME = datetime(1900, 1, 2, 3, 4)
+TUPLES = [[1], [2], [3], [4], [5]]
 
 
-def query():
-    """Simple empty query"""
-    return {'rawQuery': 'empty',
-            'logicalRa': 'empty',
-            'fragments': []}
+STATE_SUCCESS = 'Unittest-Success'
+STATE_RUNNING = 'RUNNING'
 
 
-def query_status(query, query_id=17, status='SUCCESS'):
-    return {'url': 'http://localhost:12345/query/query-%d' % query_id,
-            'queryId': query_id,
-            'rawQuery': query['rawQuery'],
-            'logicalRa': query['rawQuery'],
-            'plan': query,
-            'submitTime': '2014-02-26T15:19:54.505-08:00',
-            'startTime': '2014-02-26T15:19:54.611-08:00',
-            'finishTime': '2014-02-26T15:23:34.189-08:00',
-            'elapsedNanos': 219577567891,
-            'status': status}
-
-
-query_counter = 0
+def get_query_dataset(query_id):
+    return [{'relationKey': QUALIFIED_NAME,
+             'schema': {
+                 'columnNames': ['column'],
+                 'columnTypes': ['INT_TYPE']
+                 },
+             'numTuples': 1,
+             'queryId': query_id,
+             'created': str(QUERY_TIME)
+             }]
 
 
 @urlmatch(netloc=r'localhost:12345')
 def local_mock(url, request):
-    global query_counter
-    if url.path == '/query' and request.method == 'POST':
-        body = query_status(query(), 17, 'ACCEPTED')
-        headers = {'Location': 'http://localhost:12345/query/query-17'}
-        query_counter = 2
-        return {'status_code': 202, 'content': body, 'headers': headers}
-    elif url.path == '/query/query-17':
-        if query_counter == 0:
-            status = 'SUCCESS'
-            status_code = 201
-        else:
-            status = 'ACCEPTED'
-            status_code = 202
-            query_counter -= 1
-        body = query_status(query(), 17, status)
-        headers = {'Location': 'http://localhost:12345/query/query-17'}
-        return {'status_code': status_code,
-                'content': body,
-                'headers': headers}
-    elif url.path == '/query/validate':
-        return request.body
-    elif url.path == '/query' and request.method == 'GET':
-        body = {'max': 17, 'min': 1,
-                'results': [query_status(query(), 17, 'ACCEPTED'),
-                            query_status(query(), 11, 'SUCCESS')]}
+    # Query metadata
+    if url.path == '/query/query-{}'.format(QUERY_ID):
+        body = query_status(RAW_QUERY, query_id=QUERY_ID)
+        return {'status_code': 200, 'content': body}
+
+    elif url.path == '/query/query-{}'.format(COMPLETED_QUERY_ID):
+        body = query_status(RAW_QUERY, query_id=QUERY_ID, status=STATE_SUCCESS)
+        return {'status_code': 200, 'content': body}
+
+    elif url.path == '/query/query-{}'.format(RUNNING_QUERY_ID):
+        body = query_status(RAW_QUERY,
+                            query_id=RUNNING_QUERY_ID,
+                            status=STATE_RUNNING)
+        return {'status_code': 200, 'content': body}
+
+    # Query dataset target
+    elif url.path == '/dataset':
+        body = json.dumps(get_query_dataset(QUERY_ID))
+        return {'status_code': 200, 'content': body}
+
+    elif url.path == '/dataset/user-public/program-adhoc' \
+                     '/relation-relation/data':
+        body = str(TUPLES)
         return {'status_code': 200, 'content': body}
 
     return None
@@ -62,36 +73,73 @@ class TestQuery(unittest.TestCase):
     def __init__(self, args):
         with HTTMock(local_mock):
             self.connection = MyriaConnection(hostname='localhost', port=12345)
-        unittest.TestCase.__init__(self, args)
+        super(TestQuery, self).__init__(args)
 
-    def test_submit(self):
-        q = query()
+    def test_id(self):
         with HTTMock(local_mock):
-            status = self.connection.submit_query(q)
-            self.assertEquals(status, query_status(q, status='ACCEPTED'))
-            self.assertEquals(query_counter, 1)
+            query = MyriaQuery(QUERY_ID, connection=self.connection)
+            self.assertEqual(query.query_id, QUERY_ID)
 
-    def test_execute(self):
-        q = query()
+    def test_connection(self):
         with HTTMock(local_mock):
-            status = self.connection.execute_query(q)
-            self.assertEquals(status, query_status(q))
+            query = MyriaQuery(QUERY_ID, connection=self.connection)
+            self.assertEqual(query.connection, self.connection)
 
-    def test_validate(self):
-        q = query()
-        with HTTMock(local_mock):
-            validated = self.connection.validate_query(q)
-            self.assertEquals(validated, q)
+            query = MyriaQuery(QUERY_ID)
+            self.assertEqual(query.connection, MyriaRelation.DefaultConnection)
 
-    def test_query_status(self):
-        q = query()
+    def test_timeout(self):
+        timeout = 999
         with HTTMock(local_mock):
-            status = self.connection.get_query_status(17)
-            self.assertEquals(status, query_status(q))
+            query = MyriaQuery(QUERY_ID,
+                               connection=self.connection,
+                               timeout=timeout)
+            self.assertEqual(query.timeout, timeout)
 
-    def x_test_queries(self):
+    def test_wait_for_completion(self):
         with HTTMock(local_mock):
-            result = self.connection.queries()
-            self.assertEquals(result['max'], 17)
-            self.assertEquals(result['min'], 1)
-            self.assertEquals(result['results'][0]['queryId'], 17)
+            query = MyriaQuery(COMPLETED_QUERY_ID,
+                               connection=self.connection,
+                               wait_for_completion=True,
+                               timeout=1)
+            self.assertEqual(query.status, STATE_SUCCESS)
+
+            self.assertRaises(requests.Timeout,
+                              MyriaQuery,
+                              RUNNING_QUERY_ID,
+                              connection=self.connection,
+                              wait_for_completion=True,
+                              timeout=1)
+
+            query = MyriaQuery(RUNNING_QUERY_ID,
+                               connection=self.connection,
+                               wait_for_completion=False,
+                               timeout=1)
+            self.assertRaises(requests.Timeout,
+                              query.wait_for_completion)
+
+    def test_name(self):
+        with HTTMock(local_mock):
+            query = MyriaQuery(COMPLETED_QUERY_ID, connection=self.connection)
+            self.assertEqual(query.name, FULL_NAME)
+            self.assertEqual(query.qualified_name, QUALIFIED_NAME)
+            self.assertEqual(query.components, NAME_COMPONENTS)
+
+    def test_status(self):
+        with HTTMock(local_mock):
+            query = MyriaQuery(COMPLETED_QUERY_ID, connection=self.connection)
+            self.assertEqual(query.status, STATE_SUCCESS)
+
+            query = MyriaQuery(RUNNING_QUERY_ID, connection=self.connection)
+            self.assertEqual(query.status, STATE_RUNNING)
+
+    def test_json(self):
+        with HTTMock(local_mock):
+            query = MyriaQuery(COMPLETED_QUERY_ID, connection=self.connection)
+            self.assertEqual(query.to_json(), TUPLES)
+
+            query = MyriaQuery(RUNNING_QUERY_ID,
+                               connection=self.connection,
+                               timeout=1)
+            self.assertRaises(requests.Timeout,
+                              query.to_json)

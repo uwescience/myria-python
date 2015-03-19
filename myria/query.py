@@ -92,7 +92,7 @@ class MyriaQuery(object):
         self._on_completed()
 
     def _on_completed(self):
-        """ Load query metadata after completion """
+        """ Load query metadata after query completion """
         dataset = self.connection._wrap_get('/dataset',
                                             params={'queryId': self.query_id})
         if len(dataset):

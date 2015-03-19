@@ -20,7 +20,7 @@ TOTAL_TUPLES = len(TUPLES)
 
 def get_uri(name):
     return '/dataset/user-{}/program-{}/relation-{}'.format(
-               'public', 'adhoc', name)
+        'public', 'adhoc', name)
 
 
 @urlmatch(netloc=r'localhost:12345')
@@ -50,11 +50,23 @@ class TestRelation(unittest.TestCase):
             self.connection = MyriaConnection(hostname='localhost', port=12345)
         super(TestRelation, self).__init__(args)
 
+    def test_connection(self):
+        with HTTMock(local_mock):
+            relation = MyriaRelation(FULL_NAME, connection=self.connection)
+            self.assertEquals(relation.connection, self.connection)
+
+            relation = MyriaRelation(FULL_NAME)
+            self.assertEquals(relation.connection,
+                              MyriaRelation.DefaultConnection)
+
     def test_name(self):
-        relation = MyriaRelation(FULL_NAME, connection=self.connection)
-        self.assertEquals(relation.name, FULL_NAME)
-        self.assertDictEqual(relation.qualified_name, QUALIFIED_NAME)
-        self.assertListEqual(relation.components, NAME_COMPONENTS)
+        with HTTMock(local_mock):
+            relation = MyriaRelation(FULL_NAME, connection=self.connection)
+            self.assertEquals(relation.name, FULL_NAME)
+            self.assertDictEqual(relation.qualified_name, QUALIFIED_NAME)
+            self.assertListEqual(relation.components, NAME_COMPONENTS)
+            self.assertEquals(relation._get_name(relation.qualified_name),
+                              FULL_NAME)
 
     def test_unpersisted_relation(self):
         with HTTMock(local_mock):
