@@ -10,11 +10,11 @@ class MyriaSchema(object):
     def __init__(self, json):
         if len(json['columnNames']) == 0:
             raise ValueError('Schema must have at least one attribute.')
-        elif len(json['columnNames']) != len(json['columnTypes']):
+        if len(json['columnNames']) != len(json['columnTypes']):
             raise ValueError('Schema must have the same number of attributes '
                              'and types.')
-        elif any((value not in SCHEMA_TYPES for value in json['columnTypes'])):
-            raise ValueError('One or more schema of the following types are '
+        if any(value not in SCHEMA_TYPES for value in json['columnTypes']):
+            raise ValueError('One or more of the following types are '
                              'invalid: ' + ', '.join(json['columnTypes']))
 
         self.json = json
