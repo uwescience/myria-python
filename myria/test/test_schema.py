@@ -2,7 +2,7 @@ import unittest
 from myria.schema import MyriaSchema
 
 
-class TestQuery(unittest.TestCase):
+class TestSchema(unittest.TestCase):
     def test_empty(self):
         empty_schema = {'columnNames': [], 'columnTypes': []}
         self.assertRaises(ValueError, MyriaSchema, empty_schema)
