@@ -115,4 +115,4 @@ class TestRelation(unittest.TestCase):
             relation = MyriaRelation('public:adhoc:NOTFOUND',
                                      connection=self.connection)
 
-            self.assertIsNone(relation.to_json(), None)
+            self.assertEquals(relation.to_json(), [])
