@@ -1,7 +1,9 @@
+""" Higher-level types for interacting with Myria relations """
+
 from dateutil.parser import parse
 from itertools import izip
 from myria import MyriaConnection, MyriaError
-from schema import MyriaSchema
+from myria.schema import MyriaSchema
 
 
 class MyriaRelation(object):
