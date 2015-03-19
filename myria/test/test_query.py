@@ -36,8 +36,7 @@ def get_query_dataset(query_id):
                  },
              'numTuples': 1,
              'queryId': query_id,
-             'created': str(QUERY_TIME)
-             }]
+             'created': str(QUERY_TIME)}]
 
 
 @urlmatch(netloc=r'localhost:12345')
@@ -74,11 +73,15 @@ def local_mock(url, request):
 
     # Query submission
     elif url.path == '/query':
-        return {'status_code': 201, 'content': '', 'headers': [('Location', '/query-submitted-uri')]}
+        return {'status_code': 201,
+                'content': '',
+                'headers': [('Location', '/query-submitted-uri')]}
 
     elif url.path == '/query-submitted-uri':
         body = json.dumps({'queryId': RUNNING_QUERY_ID})
-        return {'status_code': 201, 'content': body, 'headers': [('Location', '/query-submitted-uri')]}
+        return {'status_code': 201,
+                'content': body,
+                'headers': [('Location', '/query-submitted-uri')]}
 
     return None
 
@@ -166,8 +169,11 @@ class TestQuery(unittest.TestCase):
 
     def test_parallel_import(self):
         with HTTMock(local_mock):
-            schema = MyriaSchema({'columnNames': ['column'], 'columnTypes': ['INT_TYPE']})
-            relation = MyriaRelation(FULL_NAME, schema=schema, connection=self.connection)
+            schema = MyriaSchema({'columnNames': ['column'],
+                                  'columnTypes': ['INT_TYPE']})
+            relation = MyriaRelation(FULL_NAME,
+                                     schema=schema,
+                                     connection=self.connection)
             work = [('http://input-uri-0', 0), ('http://input-uri-1', 1)]
 
             query = MyriaQuery.parallel_import(relation, work)
