@@ -1,3 +1,6 @@
+""" Higher-level types for interacting with Myria schema """
+
+
 class MyriaSchema(object):
     """ Represents a schema for a Myria relation """
 
@@ -8,5 +11,5 @@ class MyriaSchema(object):
 
     def to_json(self):
         ''' Convert this schema instance to JSON '''
-        return {'columnNames': [n.encode('ascii') for n in self.names],
-                'columnTypes': [t.encode('ascii') for t in self.types]}
+        return {'columnNames': self.names,
+                'columnTypes': self.types}

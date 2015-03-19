@@ -1,7 +1,9 @@
+""" Higher-level types for interacting with Myria queries """
+
 import time
 import requests
-from . import MyriaRelation
 import myria.plans
+from myria.relation import MyriaRelation
 
 
 class MyriaQuery(object):
