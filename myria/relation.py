@@ -34,12 +34,13 @@ class MyriaRelation(object):
         self._metadata = None
 
         if self._schema is not None and self.is_persisted:
-            raise MyriaError('New relation specified (schema != None), '
+            raise ValueError('New relation specified (schema != None), '
                              ' but it already exists on the server.')
 
     def to_json(self):
         """ Download this relation as JSON """
-        return self.connection.download_dataset(self.qualified_name)
+        return self.connection.download_dataset(self.qualified_name) \
+            if self.is_persisted else None
 
     @property
     def schema(self):
