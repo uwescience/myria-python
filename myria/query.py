@@ -32,7 +32,9 @@ class MyriaQuery(object):
                           connection, timeout)
 
     @staticmethod
-    def parallel_import(relation, work, timeout=3600):
+    def parallel_import(relation, work, timeout=3600,
+                        scan_type=None, scan_parameters=None,
+                        insert_type=None, insert_parameters=None):
         """ Submit a new parallel ingest plan to Myria
 
         relation: a MyriaRelation instance that receives the imported data
@@ -47,7 +49,9 @@ class MyriaQuery(object):
                 relation.schema,
                 [(wid, {"dataType": "URI", "uri": uri}) for wid, uri in work],
                 relation.qualified_name,
-                text='Parallel Import ' + str(work)),
+                text='Parallel Import ' + str(work),
+                scan_type=scan_type, scan_parameters=scan_parameters,
+                insert_type=insert_type, insert_parameters=insert_parameters),
             relation.connection,
             timeout)
 
