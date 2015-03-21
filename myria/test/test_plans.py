@@ -33,11 +33,11 @@ class TestPlans(unittest.TestCase):
 
     def test_scan(self):
         scan_type = 'UNITTEST-SCAN'
-        scan_metadata = {'metadata': 'foo'}
+        scan_parameters = {'metadata': 'foo'}
         plan = myria.plans.get_parallel_import_plan(
             SCHEMA, WORK, QUALIFIED_NAME,
             scan_type=scan_type,
-            scan_metadata=scan_metadata)
+            scan_parameters=scan_parameters)
 
         for fragment in plan['fragments']:
             scan_operator = fragment['operators'][0]
@@ -47,11 +47,11 @@ class TestPlans(unittest.TestCase):
 
     def test_insert(self):
         insert_type = 'UNITTEST-INSERT'
-        insert_metadata = {'metadata': 'bar'}
+        insert_parameters = {'metadata': 'bar'}
         plan = myria.plans.get_parallel_import_plan(
             SCHEMA, WORK, QUALIFIED_NAME,
             insert_type=insert_type,
-            insert_metadata=insert_metadata)
+            insert_parameters=insert_parameters)
 
         for fragment in plan['fragments']:
             insert_operator = fragment['operators'][-1]
