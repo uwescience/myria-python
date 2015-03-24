@@ -5,4 +5,4 @@ from .query import *
 from .schema import *
 import cmd
 
-version = "1.1-dev"
+version = "1.2-dev"
