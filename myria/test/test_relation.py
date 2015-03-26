@@ -81,11 +81,26 @@ class TestRelation(unittest.TestCase):
 
     def test_persisted_with_schema(self):
         with HTTMock(local_mock):
+            self.assertIsInstance(MyriaRelation(FULL_NAME,
+                                                connection=self.connection,
+                                                schema=MyriaSchema(SCHEMA)),
+                                  MyriaRelation)
+
+            different_name = {'columnNames': ['foo'],
+                              'columnTypes': ['INT_TYPE']}
             self.assertRaises(ValueError,
                               MyriaRelation,
                               FULL_NAME,
                               connection=self.connection,
-                              schema=MyriaSchema(SCHEMA))
+                              schema=MyriaSchema(different_name))
+
+            different_type = {'columnNames': ['column'],
+                              'columnTypes': ['STRING_TYPE']}
+            self.assertRaises(ValueError,
+                              MyriaRelation,
+                              FULL_NAME,
+                              connection=self.connection,
+                              schema=MyriaSchema(different_type))
 
     def test_persisted_schema(self):
         with HTTMock(local_mock):

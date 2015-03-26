@@ -30,12 +30,16 @@ class MyriaRelation(object):
         self.components = self._get_name_components(self.name)
         self.connection = connection
         self.qualified_name = self._get_qualified_name(self.components)
-        self._schema = schema
+        self._schema = None
         self._metadata = None
 
-        if self._schema is not None and self.is_persisted:
-            raise ValueError('New relation specified (schema != None), '
-                             ' but it already exists on the server.')
+        # If the relation is already persisted, any schema parameter
+        # must match the persisted version.
+        if schema is not None and self.is_persisted and self.schema != schema:
+            raise ValueError('Stored relation schema does not match '
+                             'that specified as schema parameter.')
+        elif schema is not None:
+            self._schema = schema
 
     def to_json(self):
         """ Download this relation as JSON """
