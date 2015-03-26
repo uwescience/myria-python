@@ -21,6 +21,12 @@ class MyriaSchema(object):
         self.names = json['columnNames']
         self.types = json['columnTypes']
 
+    def __eq__(self, other):
+        return isinstance(other, MyriaSchema) and self.json == other.json
+
+    def __ne__(self, other):
+        return not self == other
+
     def to_json(self):
         ''' Convert this schema instance to JSON '''
         return {'columnNames': self.names,
