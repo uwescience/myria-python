@@ -5,6 +5,11 @@ from itertools import izip
 from myria import MyriaConnection, MyriaError
 from myria.schema import MyriaSchema
 
+try:
+    from pandas.core.frame import DataFrame
+except ImportError:
+    DataFrame = None
+
 
 class MyriaRelation(object):
     """ Represents a relation in the Myria system """
@@ -45,6 +50,22 @@ class MyriaRelation(object):
         """ Download this relation as JSON """
         return self.connection.download_dataset(self.qualified_name) \
             if self.is_persisted else []
+
+    def to_dataframe(self, index=None):
+        """ Convert the query result to a Pandas DataFrame """
+        if not DataFrame:
+            raise ImportError('Must execute `pip install pandas` to generate '
+                              'Pandas DataFrames')
+        else:
+            return DataFrame.from_records(self.to_json(), index=index)
+
+    def _repr_json_(self):
+        """ Generate a representation of this query as JSON """
+        return self.to_json()
+
+    def _repr_html_(self):
+        """ Generate a representation of this query as HTML """
+        return self.to_dataframe().to_html()
 
     @property
     def schema(self):
