@@ -100,7 +100,7 @@ class MyriaQuery(object):
                 self.query_id)['status']
         return self._status
 
-    def to_json(self):
+    def to_dict(self):
         """ Download the JSON results of the query """
         self.wait_for_completion()
         return self.connection.download_dataset(self.qualified_name)
