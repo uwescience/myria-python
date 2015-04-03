@@ -105,7 +105,7 @@ class TestRelation(unittest.TestCase):
     def test_persisted_schema(self):
         with HTTMock(local_mock):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
-            self.assertDictEqual(relation.schema.to_json(), SCHEMA)
+            self.assertDictEqual(relation.schema.to_dict(), SCHEMA)
 
     def test_created_date(self):
         with HTTMock(local_mock):
@@ -123,11 +123,11 @@ class TestRelation(unittest.TestCase):
         with HTTMock(local_mock):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
 
-            self.assertListEqual(relation.to_json(), TUPLES)
+            self.assertListEqual(relation.to_dict(), TUPLES)
 
-    def test_unpersisted_json_download(self):
+    def test_unpersisted_dict_download(self):
         with HTTMock(local_mock):
             relation = MyriaRelation('public:adhoc:NOTFOUND',
                                      connection=self.connection)
 
-            self.assertEquals(relation.to_json(), [])
+            self.assertEquals(relation.to_dict(), [])

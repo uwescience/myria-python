@@ -27,7 +27,7 @@ class MyriaSchema(object):
     def __ne__(self, other):
         return not self == other
 
-    def to_json(self):
+    def to_dict(self):
         ''' Convert this schema instance to JSON '''
         return {'columnNames': self.names,
                 'columnTypes': self.types}
