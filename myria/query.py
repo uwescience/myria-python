@@ -50,8 +50,10 @@ class MyriaQuery(object):
                 [(wid, {"dataType": "URI", "uri": uri}) for wid, uri in work],
                 relation.qualified_name,
                 text='Parallel Import ' + str(work),
-                scan_type=scan_type, scan_parameters=scan_parameters,
-                insert_type=insert_type, insert_parameters=insert_parameters),
+                scan_type=scan_type,
+                scan_parameters=scan_parameters,
+                insert_type=insert_type,
+                insert_parameters=insert_parameters),
             relation.connection,
             timeout)
 

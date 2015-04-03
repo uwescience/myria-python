@@ -41,7 +41,7 @@ class MyriaRelation(object):
         elif schema is not None:
             self._schema = schema
 
-    def to_json(self):
+    def to_dict(self):
         """ Download this relation as JSON """
         return self.connection.download_dataset(self.qualified_name) \
             if self.is_persisted else []
@@ -86,7 +86,7 @@ class MyriaRelation(object):
 
     @staticmethod
     def _get_name_components(name):
-        """ Unstrigify a Myria relation name into a list of components """
+        """ Parse a Myria relation name into a list of components """
         components = name.split(':')
         default_components = ['public', 'adhoc'][:max(3 - len(components), 0)]
         return default_components + components[:3]
