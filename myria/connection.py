@@ -1,4 +1,3 @@
-import time
 import base64
 import ConfigParser
 import json
@@ -25,8 +24,6 @@ logging.basicConfig(level=logging.WARN)
 
 class MyriaConnection(object):
     """Contains a connection the Myria REST server."""
-
-    NONTERMINAL_STATES = ['ACCEPTED', 'RUNNING']
 
     _DEFAULT_HEADERS = {
         'Accept': JSON,
@@ -449,13 +446,3 @@ class MyriaConnection(object):
             raise MyriaError('Error %d: %s'
                              % (r.status_code, r.text))
         return r.json()
-
-    def wait_for_completion(self, query_id, timeout=120):
-        """ Wait up to <timeout> seconds for a query to complete """
-        end = time.time() + timeout
-
-        while self.get_query_status(query_id)['status'] \
-                in self.NONTERMINAL_STATES:
-            if time.time() >= end:
-                raise requests.Timeout()
-            time.sleep(1)
