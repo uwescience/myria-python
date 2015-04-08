@@ -1,11 +1,15 @@
 """ Higher-level types for interacting with Myria queries """
 
+import time
+import requests
 import myria.plans
 from myria.relation import MyriaRelation
 
 
 class MyriaQuery(object):
     """ Represents a Myria query """
+
+    nonterminal_states = ['ACCEPTED', 'RUNNING']
 
     def __init__(self, query_id, connection=MyriaRelation.DefaultConnection,
                  timeout=60, wait_for_completion=False):
@@ -74,8 +78,7 @@ class MyriaQuery(object):
     @property
     def status(self):
         """ The current status of the query """
-        if not self._status or self._status \
-                in self.connection.NONTERMINAL_STATES:
+        if not self._status or self._status in self.nonterminal_states:
             self._status = self.connection.get_query_status(
                 self.query_id)['status']
         return self._status
@@ -87,14 +90,15 @@ class MyriaQuery(object):
 
     def wait_for_completion(self, timeout=None):
         """ Wait up to <timeout> seconds for the query to complete """
-        self.connection.wait_for_completion(self.query_id,
-                                            timeout=timeout or self.timeout)
+        end = time.time() + (timeout or self.timeout)
+        while self.status in self.nonterminal_states:
+            if time.time() >= end:
+                raise requests.Timeout()
+            time.sleep(1)
         self._on_completed()
 
     def _on_completed(self):
-        """ Wait for query completion and load query metadata """
-        self.connection.wait_for_completion(self.query_id,
-                                            timeout=self.timeout)
+        """ Load query metadata after query completion """
         dataset = self.connection._wrap_get('/dataset',
                                             params={'queryId': self.query_id})
         if len(dataset):
