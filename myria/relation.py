@@ -57,7 +57,7 @@ class MyriaRelation(object):
             raise ImportError('Must execute `pip install pandas` to generate '
                               'Pandas DataFrames')
         else:
-            return DataFrame.from_records(self.to_json(), index=index)
+            return DataFrame.from_records(self.to_dict(), index=index)
 
     def _repr_html_(self):
         """ Generate a representation of this query as HTML """
