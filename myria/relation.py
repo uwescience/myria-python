@@ -59,10 +59,6 @@ class MyriaRelation(object):
         else:
             return DataFrame.from_records(self.to_json(), index=index)
 
-    def _repr_json_(self):
-        """ Generate a representation of this query as JSON """
-        return self.to_json()
-
     def _repr_html_(self):
         """ Generate a representation of this query as HTML """
         return self.to_dataframe().to_html()

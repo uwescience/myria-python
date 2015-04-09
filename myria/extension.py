@@ -2,13 +2,14 @@
 
 import re
 from urlparse import urlparse
-from myria import MyriaConnection, MyriaQuery
 from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Int, Unicode
+from IPython.display import HTML
+from myria import *
 
 
-BIND_PATTERN = r':(?P<identifier>[a-z_]\w*)'
+BIND_PATTERN = r'[^\w]:(?P<identifier>[a-z_]\w*)'
 
 
 @magics_class
@@ -31,7 +32,7 @@ class MyriaExtension(Magics, Configurable):
 
     @line_magic('myria')
     @cell_magic('myria')
-    def execute(self, line, cell='', environment=None):
+    def execute(self, line, cell='', environment=None, profile=False):
         """ Execute a Myria query
 
         If no ambient connection exists, the first line should contain a
@@ -74,7 +75,15 @@ class MyriaExtension(Magics, Configurable):
             return MyriaQuery.submit(_bind(cell, self.shell.user_ns),
                                      connection=self.ambient_connection,
                                      language=self.language,
+                                     profile=profile,
                                      timeout=self.timeout)
+
+    @line_magic('profile')
+    @cell_magic('profile')
+    def profile(self, line, cell='', environment=None):
+        query = eval(line, environment)
+        return HTML('<iframe style="width: 100%; height: 600px" src="https://demo.myria.cs.washington.edu/profile?queryId={}"></iframe>'.format(query.query_id))
+
 
     def _parse_metadata(self, metadata):
         """ Parse a metadata line and set ambient connection and values
