@@ -38,8 +38,7 @@ class MyriaQuery(object):
         return MyriaQuery(
             connection.execute_program(
                 query,
-                language,
-                server or connection._url_start.split(':')[0])['queryId'],
+                language=language)['queryId'],
             connection, timeout)
 
     @staticmethod
@@ -112,17 +111,11 @@ class MyriaQuery(object):
         else:
             return DataFrame.from_records(self.to_json(), index=index)
 
-    def _repr_json_(self):
-        """ Generate a representation of this query as JSON """
-        return self.to_json() \
-            if self.status not in self.nonterminal_states \
-            else None
-
     def _repr_html_(self):
         """ Generate a representation of this query as HTML """
         return self.to_dataframe().to_html() \
             if self.status not in self.nonterminal_states \
-            else None
+            else '<{}, status={}>'.format(self.__class__.__name__, self.status)
 
     def wait_for_completion(self, timeout=None):
         """ Wait up to <timeout> seconds for the query to complete """
