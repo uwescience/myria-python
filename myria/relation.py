@@ -16,7 +16,7 @@ class MyriaRelation(object):
 
     DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
 
-    def __init__(self, relation, connection=DefaultConnection, schema=None):
+    def __init__(self, relation, connection=None, schema=None):
         """ Attach to an existing Myria relation, or create a new one
 
         relation: the name of the relation.  One of:
@@ -33,7 +33,7 @@ class MyriaRelation(object):
         self.name = relation if isinstance(relation, basestring) \
             else relation.name
         self.components = self._get_name_components(self.name)
-        self.connection = connection
+        self.connection = connection or self.DefaultConnection
         self.qualified_name = self._get_qualified_name(self.components)
         self._schema = None
         self._metadata = None
