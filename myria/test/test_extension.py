@@ -1,36 +1,36 @@
 import unittest
-from collections import namedtuple
-from IPython.config.loader import KeyValueConfigLoader
+import IPython
 from myria import extension
 
 
-def get_shell():
-    fields = ['config', 'configurables', 'user_ns']
-    values = KeyValueConfigLoader().load_config([]), [], {}
-    return namedtuple('ShellMock', fields)(*values)
-
-
 class TestExtension(unittest.TestCase):
-    def test_execute_line(self):
-        language = u'Elven'
-        url = u'http://foo.bar:80'
-        line = u'{}, {}'.format(language, url)
+    def test_connect(self):
+        rest_url = u'http://foo.bar:80'
+        execution_url = u'http://baz.qux:999'
+        language = 'Elven'
+        timeout = 999
 
-        ext = extension.MyriaExtension(shell=get_shell())
-        ext.execute(line)
+        ext = extension.MyriaExtension(shell=IPython.InteractiveShell())
 
-        self.assertEqual(ext.ambient_connection._url_start, url)
+        connection = ext.connect(rest_url)
+        self.assertEqual(connection._url_start, rest_url)
+
+        line = u'{} {}'.format(rest_url, execution_url)
+        connection = ext.connect(line)
+        self.assertEqual(connection._url_start, rest_url)
+        self.assertEqual(connection.execution_url, execution_url)
+
+        line = u'{} {} -l Elven -t 999'.format(rest_url, execution_url)
+        connection = ext.connect(line)
+        self.assertEqual(connection._url_start, rest_url)
+        self.assertEqual(connection.execution_url, execution_url)
         self.assertEqual(ext.language, language)
-
-    def test_create_connection(self):
-        url = u'http://foo.bar:80'
-        connection = extension._create_connection(url)
-        self.assertEqual(connection._url_start, url)
+        self.assertEqual(ext.timeout, timeout)
 
     def test_bind(self):
         query = 'foo'
         self.assertEqual(query, extension._bind(query, {}))
 
-        query = 'foo :bar baz'
+        query = 'foo @bar baz'
         expected = 'foo 999 baz'
         self.assertEqual(expected, extension._bind(query, {'bar': 999}))
