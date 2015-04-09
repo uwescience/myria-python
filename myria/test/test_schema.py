@@ -28,6 +28,6 @@ class TestSchema(unittest.TestCase):
         schema = {'columnNames': ['foo'], 'columnTypes': types}
         self.assertListEqual(types, MyriaSchema(schema).types)
 
-    def test_json(self):
+    def test_dict(self):
         schema = {'columnNames': ['foo'], 'columnTypes': ['INT_TYPE']}
-        self.assertDictEqual(schema, MyriaSchema(schema).to_json())
+        self.assertDictEqual(schema, MyriaSchema(schema).to_dict())

@@ -149,16 +149,16 @@ class TestQuery(unittest.TestCase):
             query = MyriaQuery(RUNNING_QUERY_ID, connection=self.connection)
             self.assertEqual(query.status, STATE_RUNNING)
 
-    def test_json(self):
+    def test_dict(self):
         with HTTMock(local_mock):
             query = MyriaQuery(COMPLETED_QUERY_ID, connection=self.connection)
-            self.assertEqual(query.to_json(), TUPLES)
+            self.assertEqual(query.to_dict(), TUPLES)
 
             query = MyriaQuery(RUNNING_QUERY_ID,
                                connection=self.connection,
                                timeout=1)
             self.assertRaises(requests.Timeout,
-                              query.to_json)
+                              query.to_dict)
 
     def test_submit_plan(self):
         with HTTMock(local_mock):

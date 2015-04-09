@@ -4,6 +4,7 @@ import json
 import csv
 from time import sleep
 import logging
+from urlparse import urlparse, ParseResult
 
 import requests
 
@@ -47,8 +48,11 @@ class MyriaConnection(object):
                  hostname=None,
                  port=None,
                  ssl=False,
+                 rest_url=None,
+                 execution_url=None,
                  timeout=None):
         """Initializes a connection to the Myria REST server.
+           (And optionally a Myria program execution URI.)
 
         Args:
             deployment: An open file (or other buffer) containing a
@@ -59,6 +63,10 @@ class MyriaConnection(object):
             port: The port of the REST server. May be overwritten if deployment
                 is provided.
             timeout: The timeout for the connection to myria.
+
+            rest_url: a URL pointing to a Myria REST endpoint
+            execution_url: a URL pointing to a Myria webserver for program
+                execution
         """
         # Parse the deployment file and, if present, override the hostname and
         # port with any provided values from deployment.
@@ -66,14 +74,27 @@ class MyriaConnection(object):
         if rest_config is not None:
             hostname = hostname or rest_config[0]
             port = port or rest_config[1]
+        if rest_url is not None:
+            url = urlparse(rest_url)
+            hostname = url.hostname
+            port = url.port
+            ssl = url.scheme == "https"
 
         if ssl:
             uri_scheme = "https"
         else:
             uri_scheme = "http"
+
+        if execution_url is None:
+            execution_url = ParseResult(scheme=uri_scheme,
+                                        netloc=hostname,
+                                        path="", params="",
+                                        query="", fragment="").geturl()
+
         self._url_start = '{}://{}:{}'.format(uri_scheme, hostname, port)
         self._session = requests.Session()
         self._session.headers.update(self._DEFAULT_HEADERS)
+        self.execution_url = execution_url
 
     def _finish_async_request(self, method, url, body=None, accept=JSON):
         headers = {
@@ -245,9 +266,7 @@ class MyriaConnection(object):
 
         return self._make_request(POST, '/dataset', json.dumps(body))
 
-    @staticmethod
-    def execute_program(program, language="MyriaL",
-                        server="https://demo.myria.cs.washington.edu/execute"):
+    def execute_program(self, program, language="MyriaL", server=None):
         """Execute the program in the specified language on Myria, polling
         its status until the query is finished. Returns the query status
         struct.
@@ -259,7 +278,8 @@ class MyriaConnection(object):
         """
 
         body = {"query": program, "language": language}
-        r = requests.post(server, data=body)
+        r = requests.post((server or self.execution_url) + '/execute',
+                          data=body)
         if r.status_code != 201:
             raise MyriaError(r)
 

@@ -39,24 +39,29 @@ def _get_parallel_import_fragment(taskid, schema, relation,
     """ Generate a single fragment of the parallel import plan """
     worker_id = assignment[0]
     datasource = assignment[1]
-    return {"overrideWorkers": [worker_id],
-            "operators": [
-                dict({
-                     "opId": __increment(taskid),
-                     "opType": scan_type or DEFAULT_SCAN_TYPE,
 
-                     "schema": schema.to_json(),
-                     "source": datasource
-                     }.items() + (scan_parameters or {}).items()),
-                dict({
-                     "opId": __increment(taskid),
-                     "opType": insert_type or DEFAULT_INSERT_TYPE,
+    scan = {
+        'opId': __increment(taskid),
+        'opType': scan_type or DEFAULT_SCAN_TYPE,
 
-                     "argChild": taskid[0] - 2,
-                     "argOverwriteTable": True,
+        'schema': schema.to_dict(),
+        'source': datasource
+    }
+    scan.update(scan_parameters or {})
 
-                     "relationKey": relation
-                     }.items() + (insert_parameters or {}).items())]}
+    insert = {
+        'opId': __increment(taskid),
+        'opType': insert_type or DEFAULT_INSERT_TYPE,
+
+        'argChild': taskid[0] - 2,
+        'argOverwriteTable': True,
+
+        'relationKey': relation
+    }
+    insert.update(insert_parameters or {})
+
+    return {'overrideWorkers': [worker_id],
+            'operators': [scan, insert]}
 
 
 def __increment(value):
