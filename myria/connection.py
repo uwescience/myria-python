@@ -77,8 +77,8 @@ class MyriaConnection(object):
         if rest_url is not None:
             url = urlparse(rest_url)
             hostname = url.hostname
-            port = url.port
             ssl = url.scheme == "https"
+            port = url.port or (443 if ssl else 80)
 
         if ssl:
             uri_scheme = "https"
