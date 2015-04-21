@@ -6,9 +6,9 @@ from .schema import *
 import cmd
 
 try:
-	# IPython is not required, so swallow exception if not installed
-	from .extension import *
+    # IPython is not required, so swallow exception if not installed
+    from .extension import *
 except ImportError:
-	pass
+    pass
 
 version = "1.2-dev"
