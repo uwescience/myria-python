@@ -7,7 +7,7 @@ from IPython.utils.traitlets import Int, Unicode
 from IPython.display import HTML
 from IPython.core.magic_arguments import \
     argument, magic_arguments, parse_argstring
-from myria import MyriaConnection, MyriaQuery, MyriaRelation
+from myria import MyriaConnection, MyriaRelation, MyriaQuery, MyriaPlan
 
 
 BIND_PATTERN = r'@(?P<identifier>[a-z_]\w*)'
@@ -108,9 +108,9 @@ class MyriaExtension(Magics, Configurable):
         """
         self.shell.user_ns.update(environment or {})
 
-        return MyriaRelation.DefaultConnection.compile_program(
-            _bind(line + '\n' + cell, self.shell.user_ns),
-            language=language or self.language)
+        return MyriaPlan.compile(_bind(line + '\n' + cell, self.shell.user_ns),
+                                 language=language or self.language,
+                                 connection=MyriaRelation.DefaultConnection)
 
     @line_magic('myrial')
     @cell_magic('myrial')

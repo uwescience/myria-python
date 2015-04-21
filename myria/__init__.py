@@ -2,6 +2,7 @@ from .connection import *
 from .errors import *
 from .relation import *
 from .query import *
+from .plans import *
 from .schema import *
 import cmd
 
