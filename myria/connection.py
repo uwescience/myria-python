@@ -295,7 +295,7 @@ class MyriaConnection(object):
                 continue
             raise MyriaError(r)
 
-    def compile_program(self, program, language="MyriaL"):
+    def compile_program(self, program, language="MyriaL", profile=False):
         """Get a compiled plan for a given program.
 
         Args:
@@ -303,13 +303,12 @@ class MyriaConnection(object):
             language: the language in which the program is written
                       (default: MyriaL).
         """
-        path = '/compile?' + urllib.urlencode({'query': program,
-                                               'language': language})
-        response = requests.get(self.execution_url + path)
+        body = {'query': program, 'language': language, 'profile': profile}
+        response = requests.post(self.execution_url + '/compile', data=body)
         if response.status_code == 200:
             return response.json()
         else:
-            raise MyriaError(r)
+            raise MyriaError(response)
 
 
     def submit_query(self, query):
