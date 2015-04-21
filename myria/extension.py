@@ -66,7 +66,7 @@ class MyriaExtension(Magics, Configurable):
         """ Execute a Myria query using the current language.
 
             Relies on MyriaRelation.DefaultConnection, which may be
-            set explicitly or via %myria_connect.
+            set explicitly or via %connect.
 
             Examples:
 
@@ -87,6 +87,30 @@ class MyriaExtension(Magics, Configurable):
                                  connection=MyriaRelation.DefaultConnection,
                                  language=language or self.language,
                                  timeout=self.timeout)
+
+    @line_magic('plan')
+    @cell_magic('plan')
+    def plan(self, line, cell='', environment=None, language=None):
+        """ Get a physical Myria plan for a program using the current language.
+
+            Relies on MyriaRelation.DefaultConnection, which may be
+            set explicitly or via %connect.
+
+            Examples:
+
+            %language MyriaL
+            %%plan
+            T1 = scan(TwitterK);
+            T2 = [from T1 emit $0 as x];
+            store(T2, JustX);
+
+            p = %plan JustX(column0) :- TwitterK(column0,column1)%
+        """
+        self.shell.user_ns.update(environment or {})
+
+        return MyriaRelation.DefaultConnection.compile_program(
+            _bind(line + '\n' + cell, self.shell.user_ns),
+            language=language or self.language)
 
     @line_magic('myrial')
     @cell_magic('myrial')
@@ -116,8 +140,8 @@ class MyriaExtension(Magics, Configurable):
             else int(query)
         return HTML('''<iframe style="width: 100%; height: 800px"
                         src="{}/profile?queryId={}"></iframe>'''.format(
-                            MyriaRelation.DefaultConnection.execution_url,
-                            query_id))
+                    MyriaRelation.DefaultConnection.execution_url,
+                    query_id))
 
 
 def load_ipython_extension(ipython):
@@ -135,6 +159,6 @@ def _bind(query, environment):
     # Total laziness: reverse list to avoid index changes during mutation
     for match in reversed(list(re.finditer(BIND_PATTERN, query, re.I))):
         query = query[:match.start()] + \
-                unicode(eval(match.group('identifier'), environment)) + \
-                query[match.end():]
+            unicode(eval(match.group('identifier'), environment)) + \
+            query[match.end():]
     return query

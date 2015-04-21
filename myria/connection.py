@@ -4,6 +4,7 @@ import json
 import csv
 from time import sleep
 import logging
+import urllib
 from urlparse import urlparse, ParseResult
 
 import requests
@@ -293,6 +294,23 @@ class MyriaConnection(object):
                 sleep(0.1)
                 continue
             raise MyriaError(r)
+
+    def compile_program(self, program, language="MyriaL"):
+        """Get a compiled plan for a given program.
+
+        Args:
+            program: a Myria program as a string.
+            language: the language in which the program is written
+                      (default: MyriaL).
+        """
+        path = '/compile?' + urllib.urlencode({'query': program,
+                                               'language': language})
+        response = requests.get(self.execution_url + path)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise MyriaError(r)
+
 
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL

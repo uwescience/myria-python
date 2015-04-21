@@ -1,10 +1,17 @@
 import unittest
-import IPython
 from myria import extension
+
+try:
+    import IPython
+except ImportError:
+    pass
 
 
 class TestExtension(unittest.TestCase):
     def test_connect(self):
+        if IPython is None:
+            return
+
         rest_url = u'http://foo.bar:80'
         execution_url = u'http://baz.qux:999'
         language = 'Elven'
