@@ -102,7 +102,10 @@ class TestQuery(unittest.TestCase):
             self.assertEqual(query.connection, self.connection)
 
             query = MyriaQuery(QUERY_ID)
-            self.assertEqual(query.connection, MyriaRelation.DefaultConnection)
+            self.assertEqual(query.connection._url_start,
+                             MyriaRelation.DefaultConnection._url_start)
+            self.assertEqual(query.connection.execution_url,
+                             MyriaRelation.DefaultConnection.execution_url)
 
     def test_timeout(self):
         timeout = 999
