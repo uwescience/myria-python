@@ -16,10 +16,10 @@ class MyriaQuery(object):
 
     nonterminal_states = ['ACCEPTED', 'RUNNING']
 
-    def __init__(self, query_id, connection=MyriaRelation.DefaultConnection,
+    def __init__(self, query_id, connection=None,
                  timeout=60, wait_for_completion=False):
         self.query_id = query_id
-        self.connection = connection
+        self.connection = connection or MyriaRelation.DefaultConnection
         self.timeout = timeout
         self._status = None
         self._name = None
@@ -31,10 +31,10 @@ class MyriaQuery(object):
 
     @staticmethod
     def submit(query, language="MyriaL",
-               connection=MyriaRelation.DefaultConnection,
-               server="https://demo.myria.cs.washington.edu/execute",
+               connection=None,
                timeout=60):
         """ Submit a query to Myria and return a new query instance """
+        connection = connection or MyriaRelation.DefaultConnection
         return MyriaQuery(
             connection.execute_program(
                 query,
@@ -42,9 +42,10 @@ class MyriaQuery(object):
             connection, timeout)
 
     @staticmethod
-    def submit_plan(plan, connection=MyriaRelation.DefaultConnection,
+    def submit_plan(plan, connection=None,
                     timeout=60):
         """ Submit a given plan to Myria and return a new query instance """
+        connection = connection or MyriaRelation.DefaultConnection
         return MyriaQuery(connection.submit_query(plan)['queryId'],
                           connection, timeout)
 
