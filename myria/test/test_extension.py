@@ -4,7 +4,7 @@ from myria import extension
 try:
     import IPython
 except ImportError:
-    pass
+    IPython = None
 
 if IPython:
     class TestExtension(unittest.TestCase):

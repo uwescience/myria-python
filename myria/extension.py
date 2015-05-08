@@ -20,7 +20,7 @@ from myria import MyriaConnection, MyriaQuery, MyriaRelation
 BIND_PATTERN = r'@(?P<identifier>[a-z_]\w*)'
 
 if IPYTHON_AVAILABLE:
-    #pylint: disable=maybe-no-member
+    # pylint: disable=maybe-no-member
     @magics_class
     class MyriaExtension(Magics, Configurable):
         """ IPython extension for executing Myria queries """
