@@ -20,6 +20,7 @@ from myria import MyriaConnection, MyriaQuery, MyriaRelation
 BIND_PATTERN = r'@(?P<identifier>[a-z_]\w*)'
 
 if IPYTHON_AVAILABLE:
+    #pylint: disable=maybe-no-member
     @magics_class
     class MyriaExtension(Magics, Configurable):
         """ IPython extension for executing Myria queries """
@@ -146,10 +147,10 @@ if IPYTHON_AVAILABLE:
             query = eval(line, environment)
             query_id = query.query_id if isinstance(query, MyriaQuery) \
                 else int(query)
-            return HTML('''<iframe style="width: 100%; height: 800px"
-                            src="{}/profile?queryId={}"></iframe>'''.format(
-                                MyriaRelation.DefaultConnection.execution_url,
-                                query_id))
+            return HTML('<iframe style="width: 100%; height: 800px" '
+                        'src="{}/profile?queryId={}"></iframe>'.format(
+                            MyriaRelation.DefaultConnection.execution_url,
+                            query_id))
 
 
 def load_ipython_extension(ipython):
