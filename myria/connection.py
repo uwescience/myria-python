@@ -310,7 +310,6 @@ class MyriaConnection(object):
         else:
             raise MyriaError(response)
 
-
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
         to be polled.
