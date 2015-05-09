@@ -68,6 +68,16 @@ class TestRelation(unittest.TestCase):
             self.assertEquals(relation._get_name(relation.qualified_name),
                               FULL_NAME)
 
+    def test_qualified_name(self):
+        with HTTMock(local_mock):
+            relation = MyriaRelation(QUALIFIED_NAME,
+                                     connection=self.connection)
+            self.assertEquals(relation.name, FULL_NAME)
+            self.assertDictEqual(relation.qualified_name, QUALIFIED_NAME)
+            self.assertListEqual(relation.components, NAME_COMPONENTS)
+            self.assertEquals(relation._get_name(relation.qualified_name),
+                              FULL_NAME)
+
     def test_unpersisted_relation(self):
         with HTTMock(local_mock):
             self.assertFalse(MyriaRelation(
