@@ -5,13 +5,18 @@ from itertools import izip
 from myria import MyriaConnection, MyriaError
 from myria.schema import MyriaSchema
 
+try:
+    from pandas.core.frame import DataFrame
+except ImportError:
+    DataFrame = None
+
 
 class MyriaRelation(object):
     """ Represents a relation in the Myria system """
 
     DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
 
-    def __init__(self, relation, connection=DefaultConnection, schema=None):
+    def __init__(self, relation, connection=None, schema=None):
         """ Attach to an existing Myria relation, or create a new one
 
         relation: the name of the relation.  One of:
@@ -26,9 +31,9 @@ class MyriaRelation(object):
         schema: for a relation that does not yet exist, specify its schema
         """
         self.name = relation if isinstance(relation, basestring) \
-            else relation.name
+            else self._get_name(relation)
         self.components = self._get_name_components(self.name)
-        self.connection = connection
+        self.connection = connection or self.DefaultConnection
         self.qualified_name = self._get_qualified_name(self.components)
         self._schema = None
         self._metadata = None
@@ -45,6 +50,18 @@ class MyriaRelation(object):
         """ Download this relation as JSON """
         return self.connection.download_dataset(self.qualified_name) \
             if self.is_persisted else []
+
+    def to_dataframe(self, index=None):
+        """ Convert the query result to a Pandas DataFrame """
+        if not DataFrame:
+            raise ImportError('Must execute `pip install pandas` to generate '
+                              'Pandas DataFrames')
+        else:
+            return DataFrame.from_records(self.to_dict(), index=index)
+
+    def _repr_html_(self):
+        """ Generate a representation of this query as HTML """
+        return self.to_dataframe().to_html()
 
     @property
     def schema(self):

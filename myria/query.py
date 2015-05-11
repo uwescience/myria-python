@@ -5,16 +5,21 @@ import requests
 import myria.plans
 from myria.relation import MyriaRelation
 
+try:
+    from pandas.core.frame import DataFrame
+except ImportError:
+    DataFrame = None
+
 
 class MyriaQuery(object):
     """ Represents a Myria query """
 
     nonterminal_states = ['ACCEPTED', 'RUNNING']
 
-    def __init__(self, query_id, connection=MyriaRelation.DefaultConnection,
+    def __init__(self, query_id, connection=None,
                  timeout=60, wait_for_completion=False):
         self.query_id = query_id
-        self.connection = connection
+        self.connection = connection or MyriaRelation.DefaultConnection
         self.timeout = timeout
         self._status = None
         self._name = None
@@ -25,9 +30,22 @@ class MyriaQuery(object):
             self.wait_for_completion()
 
     @staticmethod
-    def submit_plan(plan, connection=MyriaRelation.DefaultConnection,
+    def submit(query, language="MyriaL",
+               connection=None,
+               timeout=60):
+        """ Submit a query to Myria and return a new query instance """
+        connection = connection or MyriaRelation.DefaultConnection
+        return MyriaQuery(
+            connection.execute_program(
+                query,
+                language=language)['queryId'],
+            connection, timeout)
+
+    @staticmethod
+    def submit_plan(plan, connection=None,
                     timeout=60):
         """ Submit a given plan to Myria and return a new query instance """
+        connection = connection or MyriaRelation.DefaultConnection
         return MyriaQuery(connection.submit_query(plan)['queryId'],
                           connection, timeout)
 
@@ -87,6 +105,20 @@ class MyriaQuery(object):
         """ Download the JSON results of the query """
         self.wait_for_completion()
         return self.connection.download_dataset(self.qualified_name)
+
+    def to_dataframe(self, index=None):
+        """ Convert the query result to a Pandas DataFrame """
+        if not DataFrame:
+            raise ImportError('Must execute `pip install pandas` to generate '
+                              'Pandas DataFrames')
+        else:
+            return DataFrame.from_records(self.to_dict(), index=index)
+
+    def _repr_html_(self):
+        """ Generate a representation of this query as HTML """
+        return self.to_dataframe().to_html() \
+            if self.status not in self.nonterminal_states \
+            else '<{}, status={}>'.format(self.__class__.__name__, self.status)
 
     def wait_for_completion(self, timeout=None):
         """ Wait up to <timeout> seconds for the query to complete """
