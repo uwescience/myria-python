@@ -31,15 +31,15 @@ class MyriaQuery(object):
 
     @staticmethod
     def submit(query, language="MyriaL",
-               connection=None,
-               timeout=60):
+               connection=None, 
+               timeout=60, profile=False):
         """ Submit a query to Myria and return a new query instance """
         connection = connection or MyriaRelation.DefaultConnection
         return MyriaQuery(
             connection.execute_program(
                 query,
                 language=language)['queryId'],
-            connection, timeout)
+            connection, timeout, profile)
 
     @staticmethod
     def submit_plan(plan, connection=None,

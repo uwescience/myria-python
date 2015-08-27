@@ -267,7 +267,7 @@ class MyriaConnection(object):
 
         return self._make_request(POST, '/dataset', json.dumps(body))
 
-    def execute_program(self, program, language="MyriaL", server=None):
+    def execute_program(self, program, language="MyriaL", server=None, profile=False):
         """Execute the program in the specified language on Myria, polling
         its status until the query is finished. Returns the query status
         struct.
@@ -278,7 +278,7 @@ class MyriaConnection(object):
                       (default: MyriaL).
         """
 
-        body = {"query": program, "language": language}
+        body = {"query": program, "language": language, "profile": str(profile)}
         r = requests.post((server or self.execution_url) + '/execute',
                           data=body)
         if r.status_code != 201:
