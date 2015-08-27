@@ -12,6 +12,7 @@ except ImportError:
 
 
 class MyriaQuery(object):
+
     """ Represents a Myria query """
 
     nonterminal_states = ['ACCEPTED', 'RUNNING']
@@ -31,7 +32,7 @@ class MyriaQuery(object):
 
     @staticmethod
     def submit(query, language="MyriaL",
-               connection=None, 
+               connection=None,
                timeout=60, profile=False):
         """ Submit a query to Myria and return a new query instance """
         connection = connection or MyriaRelation.DefaultConnection

@@ -25,6 +25,7 @@ logging.basicConfig(level=logging.WARN)
 
 
 class MyriaConnection(object):
+
     """Contains a connection the Myria REST server."""
 
     _DEFAULT_HEADERS = {
@@ -149,7 +150,7 @@ class MyriaConnection(object):
                 if accept == JSON:
                     try:
                         return r.json()
-                    except ValueError, e:
+                    except ValueError as e:
                         raise MyriaError(
                             'Error %d: %s' % (r.status_code, r.text))
                 else:
@@ -267,7 +268,8 @@ class MyriaConnection(object):
 
         return self._make_request(POST, '/dataset', json.dumps(body))
 
-    def execute_program(self, program, language="MyriaL", server=None, profile=False):
+    def execute_program(self, program, language="MyriaL", server=None,
+                        profile=False):
         """Execute the program in the specified language on Myria, polling
         its status until the query is finished. Returns the query status
         struct.
@@ -278,7 +280,9 @@ class MyriaConnection(object):
                       (default: MyriaL).
         """
 
-        body = {"query": program, "language": language, "profile": str(profile)}
+        body = {"query": program,
+                "language": language,
+                "profile": str(profile)}
         r = requests.post((server or self.execution_url) + '/execute',
                           data=body)
         if r.status_code != 201:
