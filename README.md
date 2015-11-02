@@ -20,4 +20,4 @@ Users can just install this using `pip install myria-python`. Developers should 
 
 ## Usage
 
-See our [detailed documentation](http://myria.cs.washington.edu/docs/myriapython.html) for additional information on using this module.
+See our [detailed documentation](docs/index.md) for additional information on using this module.
