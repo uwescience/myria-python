@@ -37,8 +37,8 @@ We illustrate the basic functionality using examples in the directory
 myria_upload --overwrite --hostname demo.myria.cs.washington.edu --port 8753 --no-ssl --relation smallTable /path/to/file
 ```
 
-### Part 2: Running MyriaQL Queries
-In this Python example, we query the smallTable relation by creating a count(*) query using the MyriaQL language.In this query, we store our result to a relation called countResult. To learn more about the Myria query language, check out the [MyriaQL](http://myria.cs.washington.edu/docs/myriaql.html) page.
+### Part 2: Running MyriaL Queries
+In this Python example, we query the smallTable relation by creating a count(*) query using the MyriaL language.In this query, we store our result to a relation called countResult. To learn more about the Myria query language, check out the [MyriaL](http://myria.cs.washington.edu/docs/myrial.html) page.
 
 ```
 from myria import MyriaConnection
