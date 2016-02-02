@@ -56,7 +56,7 @@ Users can install the Python libraries using `pip install myria-python`. Develop
 
 ### Part 1: Running Queries
 
-In this Python example, we query the smallTable relation by creating a count(*) query using the MyriaL language.  In this query, we store our result to a relation called countResult. To learn more about the Myria query language, check out the [MyriaL](http://myria.cs.washington.edu/docs/myrial.html) page.
+In this Python example, we query the smallTable relation by creating a `count(*)` query.  In this query, we store our result to a relation called dataCount. To learn more about the Myria query language, check out the [MyriaL](http://myria.cs.washington.edu/docs/myrial.html) page.
 
 ```python
 from myria import *
@@ -194,8 +194,8 @@ Myriaexposes convenience functionality when running within the Jupyter/IPython e
 %%query
 books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/books.csv',
              csv(schema(name:string, pages:int)));
-       longerBooks = [from books where pages > 300 emit name];
-       store(longerBooks, LongerBooks);
+longerBooks = [from books where pages > 300 emit name];
+store(longerBooks, LongerBooks);
 ```
 
 #### 4. Variable Binding
@@ -212,6 +212,6 @@ Now we can execute a query in an IPython notebook that binds over our local envi
 %%query
 books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/books.csv',
              csv(schema(name:string, pages:int)));
-       longerBooks = [from books where pages > @low and pages < @high emit name];
-       store(longerBooks, @name);
+longerBooks = [from books where pages > @low and pages < @high emit name];
+store(longerBooks, @name);
 ```
