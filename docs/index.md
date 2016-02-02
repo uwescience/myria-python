@@ -12,6 +12,8 @@ Myria-Python is a Python interface to the [Myria project](http://myria.cs.washin
 
 The Python components include intuitive, high-level interfaces for working with Myria, along with lower-level operations for interacting directly with the Myria API.
 
+#### Quick Start Example
+
 ```python
   from myria import *
 
@@ -91,7 +93,7 @@ print relation.to_dict()[:5]
 
 ### Part 3: Uploading Data
 
-#### From a local Python variable
+#### 1. From a local Python variable
 
 ```python
 from myria import *
@@ -112,7 +114,7 @@ relation = MyriaRelation("Books", connection=connection)
 print relation.to_dict()
 ```
 
-#### From a Local File
+#### 2. From a Local File
 
 ```python
 import sys
@@ -142,7 +144,7 @@ relation = MyriaRelation(name, connection=connection)
 print relation.to_dict()
 ```
 
-#### From the Command Line
+#### 3. From the Command Line
 
 In the example below, we upload a local CSV file to the Myria Service. Here is an example you can run through your terminal (assuming you've setup myria-python):
 
@@ -151,7 +153,7 @@ wget https://raw.githubusercontent.com/uwescience/myria/master/jsonQueries/getti
 myria_upload --overwrite --hostname demo.myria.cs.washington.edu --port 8753 --no-ssl --relation smallTable smallTable
 ```
 
-#### Loading Large Datasets In Parallel
+#### 4. Loading Large Datasets In Parallel
 
 ```python
 from myria import *
@@ -174,19 +176,19 @@ print query.status
 
 Myriaexposes convenience functionality when running within the Jupyter/IPython environment.  See [our sample IPython notebook](https://github.com/uwescience/myria-python/blob/master/ipnb%20examples/myria%20examples.ipynb) for a live demo.
 
-### Load the Extension
+#### 1. Load the Extension
 
 ```python
 %load_ext myria
 ```
 
-### Connecting to Myria
+#### 2. Connect to Myria
 
 ```python
 %connect http://demo.myria.cs.washington.edu:8753
 ```
 
-### Executing Queries
+#### 3. Execute Queries
 
 ```python
 %%query
@@ -196,7 +198,7 @@ books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/i
        store(longerBooks, LongerBooks);
 ```
 
-### Variable Binding
+#### 4. Variable Binding
 
 You can embed local Python variables into a query expression.  For example, assume we have set the following local variables:
 
