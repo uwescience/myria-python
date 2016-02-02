@@ -12,7 +12,13 @@ Myria-Python is a Python interface to the [Myria project](http://myria.cs.washin
 
 The Python components include intuitive, high-level interfaces for working with Myria, along with lower-level operations for interacting directly with the Myria API.
 
+Developers interact with the Myria system using `MyriaConnection` instances to establish a connection to the database, `MyriaQuery` instances to issue queries and obtain results, and `MyriaRelation` instances to interact with stored data.  Data may be uploaded in a variety of formats via a URL or the local file system.  Downloaded data may be easily converted into Python dictionaries, Pandas dataframes, and Numpy arrays.  A general workflow might involve the following high-level steps:
+
+![Myria-Python Workflow](https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/overview.png "Myria-Python Workflow")
+
 #### Quick Start Example
+
+The following example illustrates a subset of the functionality available in the Myria Python library:
 
 ```python
   from myria import *
@@ -45,8 +51,6 @@ The Python components include intuitive, high-level interfaces for working with 
   connection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu')
   datasets = connection.datasets()
 ```
-
-![Myria-Python Workflow](https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/overview.png "Myria-Python Workflow")
 
 ## Installation
 
