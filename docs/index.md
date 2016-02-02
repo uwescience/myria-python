@@ -164,8 +164,7 @@ relation = MyriaRelation('parallelLoad', connection=connection, schema=schema)
 
 # A list of worker-URL pairs -- must be one for each worker
 work = [(1, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/smallTable'),
-        (2, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/smallTable'),
-        (3, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/smallTable')]
+        (2, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/smallTable')]
 
 # Upload the data
 query = MyriaQuery.parallel_import(relation=relation, work=work)
