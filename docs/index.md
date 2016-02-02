@@ -13,29 +13,53 @@ Myria-Python is a Python interface to the [Myria project](http://myria.cs.washin
 The Python components include intuitive, high-level interfaces for working with Myria, along with lower-level operations for interacting directly with the Myria API.
 
 ```python
-  # Lower-level interaction via the API connection
+  from myria import *
+
+  ## Establish a connection to Myria
+
+  connection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu')
+
+  ## Higher-level interaction via relation and query instances
+  query = MyriaQuery.submit(
+    """books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/books.csv',
+                    csv(schema(name:string, pages:int)));
+       longerBooks = [from books where pages > 300 emit name];
+       store(longerBooks, LongerBooks);"""
+
+  # Download relation and convert it to JSON
+  json = query.to_dict()
+
+  # ... or download to a Pandas Dataframe
+  dataframe = query.to_dataframe()
+
+  # ... or download to a Numpy array
+  dataframe = query.to_dataframe().as_matrix()
+
+  ## Access an already-stored relation
+  relation = MyriaRelation(relation='LongerBooks', connection=connection)
+  print len(relation)
+
+  ## Lower-level interaction via the REST API
   connection = MyriaConnection(hostname='demo.myria.cs.washington.edu', port=8753)
   datasets = connection.datasets()
-
-  # Higher-level interaction via relation and query instances
-  relation = MyriaRelation(relation='public:adhoc:smallTable', connection=connection)
-  json = relation.to_dict()
 ```
+
+![Myria-Python Workflow](https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/overview.png "Myria-Python Workflow")
 
 ## Installation
 
 Users can install the Python libraries using `pip install myria-python`. Developers should clone the [repository](https://github.com/uwescience/myria-python) and run `python setup.py develop`.
 
-
 ## Using Python with the Myria Service
 
-### Part 1: Uploading Data
+### Part 1: Uploading Data from the Command Line
 
 We illustrate the basic functionality using examples in the directory
 `jsonQueries/getting_started`. The  `jsonQueries` directory contains additional examples. In the example below, we upload the smallTable to the Myria Service. Here is an example you can run through your terminal (assuming you've setup myria-python):
 
 ```
-myria_upload --overwrite --hostname demo.myria.cs.washington.edu --port 8753 --no-ssl --relation smallTable /path/to/file
+wget https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/books.csv
+myria_upload --overwrite --hostname demo.myria.cs.washington.edu --port 8753 --no-ssl --relation books books.csv
 ```
 
 ### Part 2: Running MyriaL Queries
