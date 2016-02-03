@@ -21,35 +21,35 @@ Developers interact with the Myria system using `MyriaConnection` instances to e
 The following example illustrates a subset of the functionality available in the Myria Python library:
 
 ```python
-  from myria import *
+from myria import *
 
-  ## Establish a default connection to Myria
+## Establish a default connection to Myria
 
-  MyriaRelation.DefaultConnection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu')
+MyriaRelation.DefaultConnection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu')
 
-  ## Higher-level interaction via relation and query instances
-  query = MyriaQuery.submit(
-    """books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/books.csv',
-                    csv(schema(name:string, pages:int)));
-       longerBooks = [from books where pages > 300 emit name];
-       store(longerBooks, LongerBooks);"""
+## Higher-level interaction via relation and query instances
+query = MyriaQuery.submit(
+"""books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/books.csv',
+                csv(schema(name:string, pages:int)));
+   longerBooks = [from books where pages > 300 emit name];
+   store(longerBooks, LongerBooks);""")
 
-  # Download relation and convert it to JSON
-  json = query.to_dict()
+# Download relation and convert it to JSON
+json = query.to_dict()
 
-  # ... or download to a Pandas Dataframe
-  dataframe = query.to_dataframe()
+# ... or download to a Pandas Dataframe
+dataframe = query.to_dataframe()
 
-  # ... or download to a Numpy array
-  dataframe = query.to_dataframe().as_matrix()
+# ... or download to a Numpy array
+dataframe = query.to_dataframe().as_matrix()
 
-  ## Access an already-stored relation
-  relation = MyriaRelation(relation='LongerBooks')
-  print len(relation)
+## Access an already-stored relation
+relation = MyriaRelation(relation='LongerBooks')
+print len(relation)
 
-  ## Lower-level interaction via the REST API
-  connection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu')
-  datasets = connection.datasets()
+## Lower-level interaction via the REST API
+connection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu')
+datasets = connection.datasets()
 ```
 
 ## Installation
