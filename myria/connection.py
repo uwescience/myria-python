@@ -10,6 +10,7 @@ from urlparse import urlparse, ParseResult
 import requests
 
 from .errors import MyriaError
+from .udf import functionTypes, create_function
 
 __all__ = ['MyriaConnection']
 
@@ -242,6 +243,20 @@ class MyriaConnection(object):
                 'programName': relation_key['programName'],
                 'relationName': relation_key['relationName']}
 
+    def create_function(self, name, text, outSchema, inSchema,lang,binary=None):
+        """Register a User Defined Function with Myria """
+        body = create_function(name,text,outSchema,inSchema,lang,binary)
+
+        return self._make_request(POST, '/function/register', json.dumps(body))
+
+    def list_functions(self ):
+        """list all the User Defined Functions with Myria"""
+        return self._wrap_get('/function')
+
+    def list_function(self, name):
+        return self._wrap_get('/function/{}'
+                            .format(name))
+
     def create_empty(self, relation_key, schema):
         return self.upload_source(relation_key, schema, {'dataType': 'Empty'})
 
@@ -442,6 +457,10 @@ class MyriaConnection(object):
         r = self._make_request(GET, resource_path, params=params,
                                get_request=True)
         return r.json()
+
+
+
+    #def delete_function():
 
     def upload_file(self, relation_key, schema, data, overwrite=None,
                     delimiter=None, binary=None, is_little_endian=None):
