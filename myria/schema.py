@@ -4,6 +4,7 @@ SCHEMA_TYPES = ['INT_TYPE', 'FLOAT_TYPE', 'DOUBLE_TYPE', 'BOOLEAN_TYPE',
                 'STRING_TYPE', 'LONG_TYPE', 'DATETIME_TYPE', 'BLOB_TYPE']
 
 
+
 class MyriaSchema(object):
     """ Represents a schema for a Myria relation """
 
