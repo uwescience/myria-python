@@ -6,7 +6,6 @@ from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
     ProjectingJoin, UnionAll, Sink, GroupBy, \
     Limit, Intersection, Difference, Distinct, OrderBy, EmptyRelation
-from raco.scheme import Scheme
 from raco.backends.logical import OptLogicalAlgebra
 from raco.backends.myria import MyriaLeftDeepTreeAlgebra
 from raco.backends.myria import compile_to_json
@@ -14,6 +13,7 @@ from raco.backends.myria.catalog import MyriaCatalog
 from raco.expression import UnnamedAttributeRef, NamedAttributeRef, COUNT, \
     COUNTALL, SUM, AVG, STDEV, MAX, MIN
 from raco.python import convert
+from raco.python.util.decompile import get_source
 from raco.relation_key import RelationKey
 from raco.scheme import Scheme
 
@@ -55,6 +55,19 @@ def _get_column_index(inputs, aliases, attribute):
 def _unique_name(query):
     """ Generate a unique relation name """
     return 'result_%s' % hashlib.md5(str(query)).hexdigest()
+
+
+def myria_function(output_type, **kwargs):
+    def decorator(f):
+        from myria import MyriaRelation
+
+        connection = kwargs.get('connection', MyriaRelation.DefaultConnection)
+        connection.create_function(kwargs.get('name', f.__name__),
+                                   get_source(f),
+                                   output_type,
+                                   functionTypes.PYTHON,
+                                   f)
+    return decorator
 
 
 class MyriaFluentQuery(object):
