@@ -77,6 +77,7 @@ def _create_udf(source_or_ast_or_callable, schema, connection,
           for name in scheme.get_names()])
 
 
+
 class MyriaFluentQuery(object):
     def __init__(self, parent, query, connection=None):
         """
