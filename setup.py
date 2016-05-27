@@ -17,6 +17,7 @@ setup(
                       "pyasn1", "requests", "requests_toolbelt",
                       "messytables", "unicodecsv", "raco >= 1.3.5",
                       "python-dateutil"],
+
     entry_points={
         'console_scripts': [
             'myria_upload = myria.cmd.upload_file:main'
