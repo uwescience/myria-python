@@ -6,7 +6,6 @@ from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
     ProjectingJoin, UnionAll, Sink, GroupBy, \
     Limit, Intersection, Difference, Distinct, OrderBy, EmptyRelation, FileScan
-
 from raco.backends.logical import OptLogicalAlgebra
 from raco.backends.myria import MyriaLeftDeepTreeAlgebra
 from raco.backends.myria import compile_to_json
