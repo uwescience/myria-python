@@ -220,3 +220,7 @@ books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/i
 longerBooks = [from books where pages > @low and pages < @high emit name];
 store(longerBooks, @name);
 ```
+
+# MyriaL
+
+The above examples use MyriaL. For more information, please see [http://myria.cs.washington.edu/docs/myrial.html](http://myria.cs.washington.edu/docs/myrial.html).
