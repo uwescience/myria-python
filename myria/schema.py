@@ -21,6 +21,9 @@ class MyriaSchema(object):
         self.names = json['columnNames']
         self.types = json['columnTypes']
 
+    def __len__(self):
+        return len(self.names)
+
     def __eq__(self, other):
         return isinstance(other, MyriaSchema) and self.json == other.json
 
