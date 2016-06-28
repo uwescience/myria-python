@@ -247,13 +247,15 @@ class MyriaConnection(object):
         """Register a User Defined Function with Myria """
         body = create_function(name,text,outSchema,inSchema,lang,binary)
 
-        return self._make_request(POST, '/dataset/function', json.dumps(body))
+        return self._make_request(POST, '/function/register', json.dumps(body))
 
-    def list_function(self ):
+    def list_functions(self ):
         """list all the User Defined Functions with Myria"""
+        return self._wrap_get('/function')
 
-        print "called list function"
-        return self._wrap_get('/dataset/function')
+    def list_function(self, name):
+        return self._wrap_get('/function/{}'
+                            .format(name))
 
     def create_empty(self, relation_key, schema):
         return self.upload_source(relation_key, schema, {'dataType': 'Empty'})
