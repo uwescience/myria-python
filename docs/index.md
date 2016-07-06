@@ -1,9 +1,9 @@
 ---
 layout: default
-title: Myria Python
+title: Myria Python/Jupyter
 group: "docs"
 weight: 4
-section: 3
+section: 2
 ---
 
 # Myria Python
@@ -15,6 +15,8 @@ The Python components include intuitive, high-level interfaces for working with 
 Developers interact with the Myria system using `MyriaConnection` instances to establish a connection to the database, `MyriaQuery` instances to issue queries and obtain results, and `MyriaRelation` instances to interact with stored data.  Data may be uploaded in a variety of formats via a URL or the local file system.  Downloaded data may be easily converted into Python dictionaries, Pandas dataframes, and Numpy arrays.  A general workflow might involve the following high-level steps:
 
 ![Myria-Python Workflow](https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/overview.png "Myria-Python Workflow")
+
+Myria-Python is also compatible with [Jupyter (IPython) Notebooks](http://jupyter.org/). See the section below for examples.
 
 #### Quick Start Example
 
@@ -177,7 +179,7 @@ print query.status
 
 ## Using Myria with IPython
 
-Myriaexposes convenience functionality when running within the Jupyter/IPython environment.  See [our sample IPython notebook](https://github.com/uwescience/myria-python/blob/master/ipnb%20examples/myria%20examples.ipynb) for a live demo.
+Myria exposes convenience functionality when running within the Jupyter/IPython environment.  See [our sample IPython notebook](https://github.com/uwescience/myria-python/blob/master/ipnb%20examples/myria%20examples.ipynb) for a live demo.
 
 #### 1. Load the Extension
 
@@ -218,3 +220,7 @@ books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/i
 longerBooks = [from books where pages > @low and pages < @high emit name];
 store(longerBooks, @name);
 ```
+
+# MyriaL
+
+The above examples use MyriaL. For more information, please see [http://myria.cs.washington.edu/docs/myrial.html](http://myria.cs.washington.edu/docs/myrial.html).
