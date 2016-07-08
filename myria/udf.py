@@ -1,7 +1,7 @@
 """User Defined functions"""
 import json
 from .errors import MyriaError
-import cloud
+from .cloudpickle import *
 import base64
 
 
@@ -22,7 +22,7 @@ def create_function(name,text, inSchema, outType,lang,binary=None):
         if(binary==None or outType==None):
             raise MyriaError("Cannot create a python function without binary or output type .")
         else :
-            obj = cloud.serialization.cloudpickle.dumps(binary, 2)
+            obj = cloudpickle.dumps(binary, 2)
             bo = base64.urlsafe_b64encode(obj)
             body = {'name':name,
                     'text':text,
