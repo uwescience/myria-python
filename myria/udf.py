@@ -4,7 +4,6 @@ from .errors import MyriaError
 from .cloudpickle import *
 import base64
 
-
 class functionTypes(object):
   POSTGRES = 0
   PYTHON = 1
