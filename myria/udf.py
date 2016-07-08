@@ -29,7 +29,7 @@ def create_function(name,text, inSchema, outType,lang,binary=None):
                     'inputSchema':inSchema.to_dict(),
                     'lang':functionTypes.PYTHON,
                     'binary': bo }
-
+                    
     if (body==None):
         raise MyriaError("Unsupported language for user function.")
     return body
