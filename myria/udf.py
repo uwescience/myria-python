@@ -1,4 +1,4 @@
-"""User Defined functions"""
+"""Creating User Defined functions"""
 import json
 from .errors import MyriaError
 from .cloudpickle import *
