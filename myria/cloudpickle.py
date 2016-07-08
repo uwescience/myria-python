@@ -27,7 +27,6 @@ are met:
       names of its contributors may be used to endorse or promote
       products derived from this software without specific prior written
       permission.
-
 """
 
 from __future__ import print_function
