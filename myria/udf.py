@@ -21,7 +21,7 @@ def create_function(name,text, inSchema, outType,lang,binary=None):
         if(binary==None or outType==None):
             raise MyriaError("Cannot create a python function without binary or output type .")
         else :
-            obj = cloudpickle.dumps(binary, 2)
+            obj = cloudpickler.dumps(binary, 2)
             bo = base64.urlsafe_b64encode(obj)
             body = {'name':name,
                     'text':text,
@@ -29,7 +29,7 @@ def create_function(name,text, inSchema, outType,lang,binary=None):
                     'inputSchema':inSchema.to_dict(),
                     'lang':functionTypes.PYTHON,
                     'binary': bo }
-                    
+
     if (body==None):
         raise MyriaError("Unsupported language for user function.")
     return body
