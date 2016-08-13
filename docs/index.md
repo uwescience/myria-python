@@ -160,6 +160,7 @@ myria_upload --overwrite --hostname demo.myria.cs.washington.edu --port 8753 --n
 ```
 
 #### 4. Loading Large Datasets In Parallel
+Myria can upload a relation in parallel. Each worker must point to a partition of the file. Users must either create or have these partitions prepared in S3. In the example below, worker 1 reads the first part of the file (TwitterK-part1.csv) while worker 2 reads the last part of the file (TwitterK-part2.csv).
 
 ```python
 from myria import *
@@ -169,8 +170,8 @@ schema = MyriaSchema({"columnTypes" : ["LONG_TYPE", "LONG_TYPE"], "columnNames" 
 relation = MyriaRelation('parallelLoad', connection=connection, schema=schema)
 
 # A list of worker-URL pairs -- must be one for each worker
-work = [(1, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/smallTable'),
-        (2, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/smallTable')]
+work = [(1, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/TwitterK-part1.csv'),
+        (2, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/TwitterK-part2.csv')]
 
 # Upload the data
 query = MyriaQuery.parallel_import(relation=relation, work=work)
