@@ -4,11 +4,11 @@ import re
 
 try:
     from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
-    from IPython.config.configurable import Configurable
-    from IPython.utils.traitlets import Int, Unicode
     from IPython.display import HTML
     from IPython.core.magic_arguments import \
         argument, magic_arguments, parse_argstring
+    from traitlets import Int, Unicode
+    from traitlets.config.configurable import Configurable
 
     IPYTHON_AVAILABLE = True
 except ImportError:
@@ -100,7 +100,8 @@ if IPYTHON_AVAILABLE:
         @line_magic('plan')
         @cell_magic('plan')
         def plan(self, line, cell='', environment=None, language=None):
-            """ Get a physical Myria plan for a program using the current language.
+            """ Get a physical Myria plan for a program using the current
+                language.
 
                 Relies on MyriaRelation.DefaultConnection, which may be
                 set explicitly or via %connect.
