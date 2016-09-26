@@ -4,6 +4,7 @@ from dateutil.parser import parse
 from itertools import izip
 from myria import MyriaConnection, MyriaError
 from myria.schema import MyriaSchema
+from myria.fluent import MyriaFluentQuery
 
 try:
     from pandas.core.frame import DataFrame
@@ -11,7 +12,7 @@ except ImportError:
     DataFrame = None
 
 
-class MyriaRelation(object):
+class MyriaRelation(MyriaFluentQuery):
     """ Represents a relation in the Myria system """
 
     DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
@@ -30,13 +31,16 @@ class MyriaRelation(object):
         connection: attach to a specific Myria API endpoint
         schema: for a relation that does not yet exist, specify its schema
         """
-        self.name = relation if isinstance(relation, basestring) \
+        name = relation if isinstance(relation, basestring) \
             else self._get_name(relation)
-        self.components = self._get_name_components(self.name)
+        self.components = self._get_name_components(name)
+        self.name = ':'.join(self.components)  # Qualify name
         self.connection = connection or self.DefaultConnection
         self.qualified_name = self._get_qualified_name(self.components)
         self._schema = None
         self._metadata = None
+        super(MyriaRelation, self).__init__(
+            None, self._scan(self.components), self.connection)
 
         # If the relation is already persisted, any schema parameter
         # must match the persisted version.
@@ -93,6 +97,9 @@ class MyriaRelation(object):
             return bool(self.metadata)
         except MyriaError:
             return False
+
+    def __str__(self):
+        return self.name
 
     @staticmethod
     def _get_name(qualified_name):
