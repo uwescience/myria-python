@@ -44,9 +44,9 @@ UDF1_TYPE, UDF2_TYPE = LONG_TYPE, STRING_TYPE
 UDF1_ARITY, UDF2_ARITY = 1, 2
 
 
-
 class TestFluent(unittest.TestCase):
     def __init__(self, args):
+
         with HTTMock(create_mock()):
             self.connection = MyriaConnection(hostname='localhost', port=12345)
         super(TestFluent, self).__init__(args)
@@ -116,6 +116,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue('12345678' in str(json))
 
     def test_project_positional_string(self):
+
         with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select("column")
@@ -428,3 +429,4 @@ class TestFluent(unittest.TestCase):
             self.assertTrue(server_state.values()[0]['isMultiValued'])
             self.assertEqual(server_state.values()[0]['outputType'],
                              'BOOLEAN_TYPE')
+

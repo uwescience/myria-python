@@ -6,6 +6,7 @@ from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
     ProjectingJoin, UnionAll, Sink, GroupBy, \
     Limit, Intersection, Difference, Distinct, OrderBy, EmptyRelation, FileScan
+
 from raco.backends.logical import OptLogicalAlgebra
 from raco.backends.myria import MyriaLeftDeepTreeAlgebra
 from raco.backends.myria import compile_to_json
@@ -93,11 +94,13 @@ class MyriaFluentQuery(object):
         self.udfs = [f.to_dict()
                      for f in MyriaFunction.get_all(self.connection)]
 
+
     def _scan(self, components):
         """ Scan a relation with the given name components """
         return Scan(RelationKey(*components),
                     MyriaCatalog(self.connection).get_scheme(
                         RelationKey(*components)))
+
 
     @staticmethod
     def _load(url, scheme, data_format='CSV', **kwargs):
@@ -144,7 +147,7 @@ class MyriaFluentQuery(object):
     def where(self, predicate):
         """ Filter the query given a predicate """
         return MyriaFluentQuery(self, Select(
-            self._convert(predicate, out_type=BOOLEAN_TYPE),
+            convert(predicate, [self.query.scheme()]),
             self.query))
 
     def product(self, other):
@@ -166,9 +169,11 @@ class MyriaFluentQuery(object):
         attributes = [_get_column_index([self, other], aliases, attribute)
                       for attribute in projection or
                       xrange(len(self.query.scheme() + other.query.scheme()))]
+
         predicate = self._convert(predicate,
                                   [self.query.scheme(), other.query.scheme()],
                                   out_type=BOOLEAN_TYPE)
+
         return MyriaFluentQuery(
             self,
             ProjectingJoin(
@@ -328,3 +333,4 @@ class MyriaFluentQuery(object):
                               multivalued=multivalued)
             self.udfs.append([udf.name, len(udf.arguments), udf.typ])
             return udf
+
