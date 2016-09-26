@@ -171,7 +171,6 @@ class MyriaFluentQuery(object):
                                   [self.query.scheme(), other.query.scheme()],
                                   out_type=BOOLEAN_TYPE)
 
-
         return MyriaFluentQuery(
             self,
             ProjectingJoin(
