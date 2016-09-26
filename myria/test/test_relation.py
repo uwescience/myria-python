@@ -48,6 +48,7 @@ class TestRelation(unittest.TestCase):
     def __init__(self, args):
         with HTTMock(local_mock):
             self.connection = MyriaConnection(hostname='localhost', port=12345)
+            MyriaRelation.DefaultConnection = self.connection
         super(TestRelation, self).__init__(args)
 
     def test_connection(self):
@@ -82,7 +83,10 @@ class TestRelation(unittest.TestCase):
         with HTTMock(local_mock):
             self.assertFalse(MyriaRelation(
                 'public:adhoc:NOTFOUND',
-                connection=self.connection).is_persisted)
+                connection=self.connection,
+                schema=MyriaSchema(
+                    {'columnNames': ['name'],
+                     'columnTypes': ['INT_TYPE']})).is_persisted)
 
     def test_persisted_relation(self):
         with HTTMock(local_mock):
@@ -138,6 +142,9 @@ class TestRelation(unittest.TestCase):
     def test_unpersisted_dict_download(self):
         with HTTMock(local_mock):
             relation = MyriaRelation('public:adhoc:NOTFOUND',
-                                     connection=self.connection)
+                                     connection=self.connection,
+                                     schema=MyriaSchema(
+                                         {'columnNames': ['name'],
+                                          'columnTypes': ['INT_TYPE']}))
 
             self.assertEquals(relation.to_dict(), [])
