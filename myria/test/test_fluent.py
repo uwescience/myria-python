@@ -10,7 +10,7 @@ from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
 from myria.udf import myria_function
 from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
 from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
-    PythonUDF
+    PYUDF
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
 
 
@@ -286,7 +286,7 @@ class TestFluent(unittest.TestCase):
             self.assertEqual(len(_apply.emitters), 1)
 
             pyudf = _apply.emitters[0][1] if apply else None
-            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertIsInstance(pyudf, PYUDF)
             self.assertEqual(pyudf.typ, UDF1_TYPE)
             self.assertTrue(pyudf.arguments, UDF1_ARITY)
 
@@ -301,7 +301,7 @@ class TestFluent(unittest.TestCase):
             self.assertEqual(len(_apply.emitters), 1)
 
             pyudf = _apply.emitters[0][1] if apply else None
-            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertIsInstance(pyudf, PYUDF)
             self.assertEqual(pyudf.typ, STRING_TYPE)
             self.assertTrue(pyudf.arguments, 2)
             self.assertEqual([n.get_val() for n in pyudf.arguments],
@@ -317,7 +317,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(select)
 
             pyudf = select.condition
-            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertIsInstance(pyudf, PYUDF)
             self.assertEqual(pyudf.typ, BOOLEAN_TYPE)
             self.assertTrue(pyudf.arguments, 2)
             self.assertEqual([n.get_val() for n in pyudf.arguments],
@@ -340,7 +340,7 @@ class TestFluent(unittest.TestCase):
             self.assertEqual(len(_apply.emitters), 1)
 
             pyudf = _apply.emitters[0][1] if apply else None
-            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertIsInstance(pyudf, PYUDF)
             self.assertEqual(pyudf.typ, BOOLEAN_TYPE)
             self.assertTrue(pyudf.arguments, 2)
             self.assertEqual([n.get_val() for n in pyudf.arguments],
@@ -370,7 +370,7 @@ class TestFluent(unittest.TestCase):
             self.assertEqual(len(_apply.emitters), 1)
 
             pyudf = _apply.emitters[0][1] if apply else None
-            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertIsInstance(pyudf, PYUDF)
             self.assertEqual(pyudf.typ, BOOLEAN_TYPE)
             self.assertTrue(pyudf.arguments, 2)
             self.assertEqual([n.get_val() for n in pyudf.arguments],

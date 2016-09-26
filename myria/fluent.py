@@ -11,7 +11,7 @@ from raco.backends.myria import MyriaLeftDeepTreeAlgebra
 from raco.backends.myria import compile_to_json
 from raco.backends.myria.catalog import MyriaCatalog
 from raco.expression import UnnamedAttributeRef, NamedAttributeRef, COUNT, \
-    COUNTALL, SUM, AVG, STDEV, MAX, MIN, PythonUDF, StringLiteral
+    COUNTALL, SUM, AVG, STDEV, MAX, MIN, PYUDF, StringLiteral
 from raco.python import convert
 from raco.python.exceptions import PythonConvertException
 from raco.relation_key import RelationKey
@@ -70,7 +70,7 @@ def _create_udf(source_or_ast_or_callable, schema, connection,
                         name,
                         multivalued,
                         connection=connection).register()
-    return PythonUDF(
+    return PYUDF(
         StringLiteral(name),
         out_type,
         *[StringLiteral(name) for scheme in schema
