@@ -11,4 +11,6 @@ try:
 except ImportError:
     pass
 
+__import__('pkg_resources').declare_namespace(__name__)
+
 version = "1.2-dev"
