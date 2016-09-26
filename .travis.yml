@@ -4,12 +4,13 @@ python:
 before_install:
   - sudo locale-gen de_DE.UTF-8
 install:
+  - pip install setuptools --upgrade
   - pip install -r requirements-dev.txt
   - python setup.py install
   - pip install coveralls
   - pip install "ipython[all]"
 script:
-  - nosetests --with-coverage --cover-package=myria
+  - nosetests --with-coverage --cover-package=myria --ignore-files myria/utility/cloudpickle.py
   - bash .travis.sdist.sh
 after_success:
   - coveralls

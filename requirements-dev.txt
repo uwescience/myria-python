@@ -4,3 +4,4 @@ httmock >= 1.2.1
 nose
 pylint
 scripttest
+python-dateutil

@@ -4,11 +4,12 @@ import json
 import csv
 from time import sleep
 import logging
-import urllib
 from urlparse import urlparse, ParseResult
 
 import requests
 
+from raco.backends.myria.connection \
+    import MyriaConnection as RacoMyriaConnection
 from .errors import MyriaError
 
 __all__ = ['MyriaConnection']
@@ -34,7 +35,8 @@ class MyriaConnection(object):
 
     @staticmethod
     def _parse_deployment(deployment):
-        "Extract the REST server hostname and port from a deployment.cfg file"
+        """Extract the REST server hostname and port from a deployment.cfg
+           file"""
         if deployment is None:
             return None
         config = ConfigParser.RawConfigParser(allow_no_value=True)
@@ -42,7 +44,7 @@ class MyriaConnection(object):
         master = config.get('master', '0')
         hostname = master[:master.index(':')]
         port = int(config.get('deployment', 'rest_port'))
-        return (hostname, port)
+        return hostname, port
 
     def __init__(self,
                  deployment=None,
@@ -149,7 +151,7 @@ class MyriaConnection(object):
                 if accept == JSON:
                     try:
                         return r.json()
-                    except ValueError, e:
+                    except ValueError:
                         raise MyriaError(
                             'Error %d: %s' % (r.status_code, r.text))
                 else:
@@ -200,6 +202,20 @@ class MyriaConnection(object):
         else:
             raise MyriaError(r)
 
+    def _wrap_delete(self, selector, data=None, params=None, status=None,
+                     accepted=None):
+        if status is None:
+            status = [201, 202]
+            if accepted is None:
+                accepted = [202]
+        else:
+            if accepted is None:
+                accepted = []
+
+        if '://' not in selector:
+            selector = self._url_start + selector
+        r = self._session.delete(selector, data=data)
+
     def workers(self):
         """Return a dictionary of the workers"""
         return self._wrap_get('/workers')
@@ -231,6 +247,13 @@ class MyriaConnection(object):
                                       relation_key['relationName']),
                               params={'format': 'json'})
 
+    def delete_dataset(self, relation_key):
+        """Delete a relation"""
+        return self._wrap_delete('/dataset/user-{}/program-{}/relation-{}'
+                                 .format(relation_key['userName'],
+                                         relation_key['programName'],
+                                         relation_key['relationName']))
+
     @staticmethod
     def _ensure_schema(schema):
         return {'columnTypes': schema['columnTypes'],
@@ -241,6 +264,20 @@ class MyriaConnection(object):
         return {'userName': relation_key['userName'],
                 'programName': relation_key['programName'],
                 'relationName': relation_key['relationName']}
+
+    def create_function(self, d):
+        """Register a User Defined Function with Myria """
+        return RacoMyriaConnection(
+            rest_url=self._url_start,
+            execution_url=self.execution_url).create_function(d)
+
+    def get_functions(self):
+        """ List all the user defined functions in Myria """
+        return self._wrap_get('/function')
+
+    def get_function(self, name):
+        """ Get user defined functions metadata """
+        return self._wrap_get('/function/{}'.format(name))
 
     def create_empty(self, relation_key, schema):
         return self.upload_source(relation_key, schema, {'dataType': 'Empty'})
@@ -276,6 +313,8 @@ class MyriaConnection(object):
             program: a Myria program as a string.
             language: the language in which the program is written
                       (default: MyriaL).
+            server: The MyriaX server on which to execute the program
+                    (None for the server associated with the connection)
         """
 
         body = {"query": program, "language": language}
@@ -302,13 +341,12 @@ class MyriaConnection(object):
             program: a Myria program as a string.
             language: the language in which the program is written
                       (default: MyriaL).
+            profile: True when the program should be profiled
         """
-        body = {'query': program, 'language': language, 'profile': profile}
-        response = requests.post(self.execution_url + '/compile', data=body)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise MyriaError(response)
+        return RacoMyriaConnection(
+            rest_url=self._url_start,
+            execution_url=self.execution_url).compile_program(
+                program, language, **{'profile': profile})
 
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
@@ -340,6 +378,14 @@ class MyriaConnection(object):
 
         body = json.dumps(query)
         return self._make_request(POST, '/query/validate', body)
+
+    def kill_query(self, query_id):
+        """Kill the running query in Myria.
+
+        Args:
+            query_id: the id of a submitted query
+        """
+        return self._wrap_delete('/query/query-%d' % int(query_id))
 
     def get_query_status(self, query_id):
         """Get the status of a submitted query.

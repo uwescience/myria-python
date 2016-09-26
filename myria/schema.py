@@ -1,7 +1,7 @@
 """ Higher-level types for interacting with Myria schema """
 
 SCHEMA_TYPES = ['INT_TYPE', 'FLOAT_TYPE', 'DOUBLE_TYPE', 'BOOLEAN_TYPE',
-                'STRING_TYPE', 'LONG_TYPE', 'DATETIME_TYPE']
+                'STRING_TYPE', 'LONG_TYPE', 'DATETIME_TYPE', 'BLOB_TYPE']
 
 
 class MyriaSchema(object):
@@ -21,6 +21,9 @@ class MyriaSchema(object):
         self.names = json['columnNames']
         self.types = json['columnTypes']
 
+    def __len__(self):
+        return len(self.names)
+
     def __eq__(self, other):
         return isinstance(other, MyriaSchema) and self.json == other.json
 
@@ -28,6 +31,6 @@ class MyriaSchema(object):
         return not self == other
 
     def to_dict(self):
-        ''' Convert this schema instance to JSON '''
+        """ Convert this schema instance to JSON """
         return {'columnNames': self.names,
                 'columnTypes': self.types}
