@@ -12,7 +12,7 @@ def create_function(name, text, outType, lang, inSchema = None, binary=None):
     body = None
 
     if(inSchema is None or inSchema == ""):
-        inputSchema = ""
+        inputschema = ""
     else:
         inputschema = inSchema.to_dict()
 
