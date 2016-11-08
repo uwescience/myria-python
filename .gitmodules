@@ -1,3 +1,0 @@
-[submodule "submodules/raco"]
-	path = submodules/raco
-	url = https://github.com/uwescience/raco.git
