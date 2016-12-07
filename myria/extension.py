@@ -100,7 +100,8 @@ if IPYTHON_AVAILABLE:
         @line_magic('plan')
         @cell_magic('plan')
         def plan(self, line, cell='', environment=None, language=None):
-            """ Get a physical Myria plan for a program using the current language.
+            """ Get a physical Myria plan for a program using the current
+                language.
 
                 Relies on MyriaRelation.DefaultConnection, which may be
                 set explicitly or via %connect.

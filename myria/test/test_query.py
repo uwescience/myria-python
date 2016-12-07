@@ -20,6 +20,7 @@ QUALIFIED_NAME = {'userName': 'public',
                   'programName': 'adhoc',
                   'relationName': RELATION_NAME}
 NAME_COMPONENTS = ['public', 'adhoc', RELATION_NAME]
+SCHEMA = {'columnNames': ['column'], 'columnTypes': ['INT_TYPE']}
 QUERY_TIME = datetime(1900, 1, 2, 3, 4)
 TUPLES = [[1], [2], [3], [4], [5]]
 
@@ -62,8 +63,10 @@ def local_mock(url, request):
 
     elif url.path == '/dataset/user-public/program-adhoc' \
                      '/relation-relation':
-        body = str(TUPLES)
-        return {'status_code': 404, 'content': body}
+        body = {'relationKey': QUALIFIED_NAME,
+                'schema': SCHEMA,
+                'numTuples': len(TUPLES)}
+        return {'status_code': 200, 'content': body}
 
     elif url.path == '/dataset/user-public/program-adhoc' \
                      '/relation-relation/data':

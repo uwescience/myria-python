@@ -4,10 +4,14 @@ python:
 before_install:
   - sudo locale-gen de_DE.UTF-8
 install:
+  - pip install setuptools --upgrade
+  - pip install pep8 --upgrade
   - pip install -r requirements-dev.txt
   - python setup.py install
   - pip install coveralls
   - pip install "ipython[all]"
+  - cat myria/__init__.py
+  - git status
 script:
   - nosetests --with-coverage --cover-package=myria
   - bash .travis.sdist.sh

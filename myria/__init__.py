@@ -7,8 +7,8 @@ from .query import *
 from .schema import *
 import cmd
 
+# IPython is not required, so swallow exception if not installed
 try:
-    # IPython is not required, so swallow exception if not installed
     from .extension import *
 except ImportError:
     pass
