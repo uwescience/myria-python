@@ -5,6 +5,7 @@ before_install:
   - sudo locale-gen de_DE.UTF-8
 install:
   - pip install setuptools --upgrade
+  - pip install pep8 --upgrade
   - pip install -r requirements-dev.txt
   - python setup.py install
   - pip install coveralls
