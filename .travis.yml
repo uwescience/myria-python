@@ -10,6 +10,8 @@ install:
   - python setup.py install
   - pip install coveralls
   - pip install "ipython[all]"
+  - cat myria/__init__.py
+  - git status
 script:
   - nosetests --with-coverage --cover-package=myria
   - bash .travis.sdist.sh
