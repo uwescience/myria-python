@@ -81,6 +81,8 @@ class MyriaRelation(MyriaFluentQuery):
 
     def __len__(self):
         """ The number of tuples in the relation """
+        if int(self.metadata['numTuples']) < 0:
+            raise Exception(self.metadata)
         return int(self.metadata['numTuples'])
 
     @property

@@ -165,9 +165,9 @@ class TestFluent(unittest.TestCase):
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right)
 
-            join = filter(lambda op: isinstance(op, Join) or
-                                     isinstance(op, CrossProduct),
-                          joined.query.walk())
+            join = filter(
+                lambda o: isinstance(o, Join) or isinstance(o, CrossProduct),
+                joined.query.walk())
             self.assertTrue(join)
             self.assertEqual(join[0].left, left.query)
             self.assertEqual(join[0].right, right.query)
