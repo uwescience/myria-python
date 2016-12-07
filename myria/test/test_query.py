@@ -62,8 +62,9 @@ def local_mock(url, request):
 
     elif url.path == '/dataset/user-public/program-adhoc' \
                      '/relation-relation':
-        body = str(TUPLES)
-        return {'status_code': 404, 'content': body}
+        body = {'relationKey': QUALIFIED_NAME,
+                'numTuples': len(TUPLES)}
+        return {'status_code': 200, 'content': body}
 
     elif url.path == '/dataset/user-public/program-adhoc' \
                      '/relation-relation/data':
