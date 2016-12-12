@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import hashlib
+from collections import defaultdict
 
 from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
@@ -11,11 +12,27 @@ from raco.backends.myria import MyriaLeftDeepTreeAlgebra
 from raco.backends.myria import compile_to_json
 from raco.backends.myria.catalog import MyriaCatalog
 from raco.expression import UnnamedAttributeRef, NamedAttributeRef, COUNT, \
-    COUNTALL, SUM, AVG, STDEV, MAX, MIN
+    COUNTALL, SUM, AVG, STDEV, MAX, MIN, PythonUDF, StringLiteral
 from raco.python import convert
-from raco.python.util.decompile import get_source
+from raco.python.exceptions import PythonConvertException
 from raco.relation_key import RelationKey
 from raco.scheme import Scheme
+from raco.types import STRING_TYPE, BOOLEAN_TYPE
+
+from myria.udf import MyriaPythonFunction, MyriaFunction
+
+
+def myria_function(name=None, output_type=STRING_TYPE):
+    def decorator(f):
+        udf_name = name or f.__name__
+
+        setattr(
+            MyriaFluentQuery,
+            udf_name,
+            lambda self: self.select(**{udf_name: f,
+                                        'types': {udf_name: output_type}}))
+
+    return decorator
 
 
 def _get_column_index(inputs, aliases, attribute):
@@ -57,17 +74,21 @@ def _unique_name(query):
     return 'result_%s' % hashlib.md5(str(query)).hexdigest()
 
 
-def myria_function(output_type, **kwargs):
-    def decorator(f):
-        from myria import MyriaRelation
+def _create_udf(source_or_ast_or_callable, schema, connection,
+                name=None, out_type=None):
+    name = name or _unique_name(str(source_or_ast_or_callable))
+    out_type = out_type or STRING_TYPE
 
-        connection = kwargs.get('connection', MyriaRelation.DefaultConnection)
-        connection.create_function(kwargs.get('name', f.__name__),
-                                   get_source(f),
-                                   output_type,
-                                   functionTypes.PYTHON,
-                                   f)
-    return decorator
+    MyriaPythonFunction(name,
+                        str(out_type),
+                        source_or_ast_or_callable,
+                        sum(map(len, schema)),
+                        connection=connection).register()
+    return PythonUDF(
+        StringLiteral(name),
+        out_type,
+        *[StringLiteral(name) for scheme in schema
+          for name in scheme.get_names()])
 
 
 class MyriaFluentQuery(object):
@@ -83,6 +104,8 @@ class MyriaFluentQuery(object):
         self.connection = connection if connection else parent.connection
         self.catalog = MyriaCatalog(self.connection)
         self.result = None
+        self.udfs = [f.to_dict()
+                     for f in MyriaFunction.get_all(self.connection)]
 
     def _scan(self, components):
         """ Scan a relation with the given name components """
@@ -107,13 +130,15 @@ class MyriaFluentQuery(object):
 
     def select(self, *args, **kwargs):
         """ Perform a projection over the underlying query """
+        types = defaultdict(lambda: None, kwargs.pop('types', {}))
         positional_attributes = (
             [(arg, NamedAttributeRef(arg)) if isinstance(arg, basestring)
-             else ('_' + str(index), convert(arg, [self.query.scheme()]))
+             else ('_' + str(index), self._convert(arg,
+                                                   out_type=types.get(index)))
              for index, arg in enumerate(args)])
         named_attributes = (
             [(n, NamedAttributeRef(v)) if isinstance(v, basestring)
-             else (n, convert(v, [self.query.scheme()]))
+             else (n, self._convert(v, out_type=types.get(n)))
              for (n, v) in kwargs.items()])
         return MyriaFluentQuery(self,
                                 Apply(positional_attributes + named_attributes,
@@ -122,7 +147,7 @@ class MyriaFluentQuery(object):
     def where(self, predicate):
         """ Filter the query given a predicate """
         return MyriaFluentQuery(self, Select(
-            convert(predicate, [self.query.scheme()]),
+            self._convert(predicate, out_type=BOOLEAN_TYPE),
             self.query))
 
     def product(self, other):
@@ -144,8 +169,9 @@ class MyriaFluentQuery(object):
         attributes = [_get_column_index([self, other], aliases, attribute)
                       for attribute in projection or
                       xrange(len(self.query.scheme() + other.query.scheme()))]
-        predicate = convert(predicate, [self.query.scheme(),
-                                        other.query.scheme()])
+        predicate = self._convert(predicate,
+                                  [self.query.scheme(), other.query.scheme()],
+                                  out_type=BOOLEAN_TYPE)
         return MyriaFluentQuery(
             self,
             ProjectingJoin(
@@ -249,7 +275,7 @@ class MyriaFluentQuery(object):
 
     def __add__(self, other):
         """ Generate the union of tuples in a query """
-        return MyriaFluentQuery(self, UnionAll(self.query, other.query))
+        return MyriaFluentQuery(self, UnionAll([self.query, other.query]))
 
     def __sub__(self, other):
         """ Generate the difference of tuples in a query """
@@ -292,3 +318,15 @@ class MyriaFluentQuery(object):
         optimized = compile.optimize(sequence, OptLogicalAlgebra())
         myria = compile.optimize(optimized, MyriaLeftDeepTreeAlgebra())
         return compile_to_json(str(self.query), optimized, myria)
+
+    def _convert(self, source_or_ast_or_callable,
+                 scheme=None, out_type=None):
+        scheme = scheme or [self.query.scheme()]
+        try:
+            return convert(source_or_ast_or_callable, scheme, udfs=self.udfs)
+        except PythonConvertException:
+            udf = _create_udf(source_or_ast_or_callable, scheme,
+                              connection=self.connection,
+                              out_type=out_type)
+            self.udfs.append([udf.name, len(udf.arguments), udf.typ])
+            return udf

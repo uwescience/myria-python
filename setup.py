@@ -4,8 +4,8 @@ setup(
     name='myria-python',
     namespace_packages = ['myria'],
     version='1.2.5',
-    author='Daniel Halperin',
-    author_email='dhalperi@cs.washington.edu',
+    author='Brandon Haynes, Daniel Halperin',
+    author_email='bhaynes@cs.washington.edu',
     packages=find_packages(),
     scripts=[],
     url='https://github.com/uwescience/myria',
@@ -15,7 +15,8 @@ setup(
     # see https://stackoverflow.com/questions/18578439
     install_requires=["pip >= 1.5.6", "pyOpenSSL >= 0.14", "ndg-httpsclient",
                       "pyasn1", "requests", "requests_toolbelt",
-                      "messytables", "unicodecsv", "raco >= 1.2.0"],
+                      "messytables", "unicodecsv", "raco >= 1.2.0",
+                      "python-dateutil"],
     entry_points={
         'console_scripts': [
             'myria_upload = myria.cmd.upload_file:main'

@@ -85,6 +85,9 @@ def local_mock(url, request):
                 'content': body,
                 'headers': [('Location', '/query-submitted-uri')]}
 
+    elif url.path == '/function':
+        return {'status_code': 200, 'content': []}
+
     return None
 
 
