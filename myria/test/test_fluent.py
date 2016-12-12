@@ -20,12 +20,19 @@ from httmock import urlmatch, HTTMock
 from datetime import datetime
 import unittest
 
-from raco.algebra import CrossProduct, Join, ProjectingJoin
-from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT
+from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
+from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
+    PythonUDF
+from raco.types import STRING_TYPE, BOOLEAN_TYPE, LONG_TYPE
 
 from myria.connection import MyriaConnection
+from myria.fluent import myria_function
 from myria.relation import MyriaRelation
+<<<<<<< HEAD
 >>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
+=======
+from myria.udf import MyriaPythonFunction
+>>>>>>> f619a12... Support for Python UDFs in fluent API, extension methods
 
 RELATION_NAME = 'relation'
 FULL_NAME = 'public:adhoc:' + RELATION_NAME
@@ -50,63 +57,19 @@ SCHEMA2 = {'columnNames': ['column3', 'column4'],
 TUPLES2 = [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]]
 TOTAL_TUPLES2 = len(TUPLES2)
 
-<<<<<<< HEAD
 UDF1_NAME, UDF2_NAME = 'udf1', 'udf2'
 UDF1_TYPE, UDF2_TYPE = LONG_TYPE, STRING_TYPE
 UDF1_ARITY, UDF2_ARITY = 1, 2
-=======
-
-def get_uri(name):
-    return '/dataset/user-{}/program-{}/relation-{}'.format(
-        'public', 'adhoc', name)
-
-
-@urlmatch(netloc=r'localhost:12345')
-def local_mock(url, request):
-    # Relation metadata
-    if url.path == get_uri(RELATION_NAME):
-        body = {'numTuples': TOTAL_TUPLES,
-                'schema': SCHEMA,
-                'created': str(CREATED_DATE)}
-        return {'status_code': 200, 'content': body}
-    elif url.path == get_uri(RELATION_NAME2):
-        body = {'numTuples': TOTAL_TUPLES2,
-                'schema': SCHEMA2,
-                'created': str(CREATED_DATE)}
-        return {'status_code': 200, 'content': body}
-
-    # Relation download
-    if url.path == get_uri(RELATION_NAME) + '/data':
-        body = str(TUPLES)
-        return {'status_code': 200, 'content': body}
-    elif url.path == get_uri(RELATION_NAME2) + '/data':
-        body = str(TUPLES2)
-        return {'status_code': 200, 'content': body}
-
-    # Relation not found in database
-    elif get_uri('NOTFOUND') in url.path:
-        return {'status_code': 404}
-
-    return None
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
 
 
 class TestFluent(unittest.TestCase):
     def __init__(self, args):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             self.connection = MyriaConnection(hostname='localhost', port=12345)
         super(TestFluent, self).__init__(args)
 
     def test_scan(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             json = relation._sink().to_json()
             optype = json['plan']['fragments'][0]['operators'][0]['opType']
@@ -114,7 +77,6 @@ class TestFluent(unittest.TestCase):
             self.assertTrue('Scan' in optype)
             self.assertTrue(relation.name in name)
 
-<<<<<<< HEAD
     def test_load(self):
         state = {}
         with HTTMock(create_mock(state)):
@@ -184,23 +146,13 @@ class TestFluent(unittest.TestCase):
 
     def test_project_positional_expression(self):
         with HTTMock(create_mock()):
-=======
-    def test_project_positional_expression(self):
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select(lambda t: t.column + 12345678)
             json = projected._sink().to_json()
             self.assertTrue('12345678' in str(json))
 
     def test_project_positional_string(self):
-<<<<<<< HEAD
-
-
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select("column")
             sunk = projected._sink()
@@ -211,11 +163,7 @@ class TestFluent(unittest.TestCase):
             self.assertFalse("column2" in str(json))
 
     def test_project_named_expression(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select(foo=lambda t: t.column + 12345678)
             json = projected._sink().to_json()
@@ -223,11 +171,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue('12345678' in str(json))
 
     def test_project_named_string(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select(foo='column')
             json = projected._sink().to_json()
@@ -237,11 +181,7 @@ class TestFluent(unittest.TestCase):
             self.assertFalse("column2" in str(json))
 
     def test_project_multiple(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select(foo='column', bar='column')
             json = projected._sink().to_json()
@@ -252,11 +192,7 @@ class TestFluent(unittest.TestCase):
             self.assertFalse("column2" in str(json))
 
     def test_select_expression(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             selected = relation.where(lambda t: t.column < 123456)
             json = selected._sink().to_json()
@@ -265,11 +201,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue("column" in str(json))
 
     def test_select_string(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             selected = relation.where("12345 + 67890")
             json = selected._sink().to_json()
@@ -278,11 +210,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue("67890" in str(json))
 
     def test_product(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             product = left.join(right)
@@ -295,11 +223,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(product._sink().to_json())
 
     def test_join(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right)
@@ -313,11 +237,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_predicate(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right, lambda l, r: l.column == r.column3)
@@ -333,11 +253,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_positional_attribute(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right,
@@ -355,11 +271,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_named_attribute(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right,
@@ -377,11 +289,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_dotted_attribute(self):
-<<<<<<< HEAD
         with HTTMock(create_mock()):
-=======
-        with HTTMock(local_mock):
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right,
@@ -538,21 +446,17 @@ class TestFluent(unittest.TestCase):
                         str(column1) == str(column2)]
 
             udf = relation.my_udf()
-
             _apply = next(iter(filter(lambda op: isinstance(op, Apply),
                                       udf.query.walk())), None)
             self.assertIsNotNone(_apply)
             self.assertEqual(len(_apply.emitters), 1)
-
             pyudf = _apply.emitters[0][1] if apply else None
             self.assertIsInstance(pyudf, PYUDF)
             self.assertEqual(pyudf.typ, BOOLEAN_TYPE)
             self.assertTrue(pyudf.arguments, 2)
             self.assertEqual([n.get_val() for n in pyudf.arguments],
                              SCHEMA['columnNames'])
-
             self.assertEqual(len(server_state), 1)
             self.assertTrue(server_state.values()[0]['isMultiValued'])
             self.assertEqual(server_state.values()[0]['outputType'],
                              'BOOLEAN_TYPE')
-

@@ -4,9 +4,5 @@ httmock >= 1.2.1
 nose
 pylint
 scripttest
-<<<<<<< HEAD
 python-dateutil
 
-=======
-raco >= 1.2.0
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation

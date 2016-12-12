@@ -2,12 +2,10 @@
 import re
 import base64
 from itertools import imap
-
 from raco.backends.myria.connection import FunctionTypes
 from raco.python.exceptions import PythonConvertException
 from raco.python.util.decompile import get_source
 from raco.types import STRING_TYPE
-
 from myria.utility import cloudpickle
 
 
