@@ -10,7 +10,6 @@ from raco.types import STRING_TYPE
 
 from myria.utility import cloudpickle
 
-
 def myria_function(name=None, output_type=STRING_TYPE, multivalued=False,
                    connection=None):
     def decorator(f):
@@ -31,7 +30,6 @@ def myria_function(name=None, output_type=STRING_TYPE, multivalued=False,
 
     return decorator
 
-
 class MyriaFunction(object):
     _cache = {}
 
@@ -42,6 +40,7 @@ class MyriaFunction(object):
                 MyriaPythonFunction.from_dict(udf, connection)
                 if udf['lang'] == FunctionTypes.PYTHON else
                 MyriaPostgresFunction.from_dict(udf, connection)
+
                 for udf in imap(connection.get_function,
                                 connection.get_functions())]
 

@@ -11,7 +11,6 @@ import requests
 from raco.backends.myria.connection \
     import MyriaConnection as RacoMyriaConnection
 from .errors import MyriaError
-from .udf import functionTypes, create_function
 
 __all__ = ['MyriaConnection']
 
@@ -267,11 +266,13 @@ class MyriaConnection(object):
                 'relationName': relation_key['relationName']}
 
 
+
     def create_function(self, d):
         """Register a User Defined Function with Myria """
         return RacoMyriaConnection(
             rest_url=self._url_start,
             execution_url=self.execution_url).create_function(d)
+
 
     def get_functions(self):
         """ List all the user defined functions in Myria """
@@ -493,10 +494,6 @@ class MyriaConnection(object):
         r = self._make_request(GET, resource_path, params=params,
                                get_request=True)
         return r.json()
-
-
-
-    #def delete_function():
 
     def upload_file(self, relation_key, schema, data, overwrite=None,
                     delimiter=None, binary=None, is_little_endian=None):
