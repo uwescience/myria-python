@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import hashlib
+from collections import defaultdict
 
 from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
@@ -19,7 +20,6 @@ from raco.scheme import Scheme
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
 
 from myria.udf import MyriaPythonFunction, MyriaFunction
-
 
 def _get_column_index(inputs, aliases, attribute):
     """
@@ -75,7 +75,6 @@ def _create_udf(source_or_ast_or_callable, schema, connection,
         out_type,
         *[StringLiteral(name) for scheme in schema
           for name in scheme.get_names()])
-
 
 
 class MyriaFluentQuery(object):
@@ -319,6 +318,7 @@ class MyriaFluentQuery(object):
 
     def _convert(self, source_or_ast_or_callable,
                  scheme=None, out_type=None, multivalued=False):
+
         scheme = scheme or [self.query.scheme()]
         try:
             return convert(source_or_ast_or_callable, scheme, udfs=self.udfs)
@@ -329,3 +329,4 @@ class MyriaFluentQuery(object):
                               multivalued=multivalued)
             self.udfs.append([udf.name, len(udf.arguments), udf.typ])
             return udf
+
