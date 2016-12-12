@@ -41,6 +41,9 @@ def local_mock(url, request):
     elif get_uri('NOTFOUND') in url.path:
         return {'status_code': 404}
 
+    elif url.path == '/function':
+        return {'status_code': 200, 'content': []}
+
     return None
 
 

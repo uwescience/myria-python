@@ -2,11 +2,15 @@ from httmock import urlmatch, HTTMock
 from datetime import datetime
 import unittest
 
-from raco.algebra import CrossProduct, Join, ProjectingJoin
-from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT
+from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
+from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
+    PythonUDF
+from raco.types import STRING_TYPE, BOOLEAN_TYPE, LONG_TYPE
 
 from myria.connection import MyriaConnection
+from myria.fluent import myria_function
 from myria.relation import MyriaRelation
+from myria.udf import MyriaPythonFunction
 
 RELATION_NAME = 'relation'
 FULL_NAME = 'public:adhoc:' + RELATION_NAME
@@ -30,6 +34,10 @@ SCHEMA2 = {'columnNames': ['column3', 'column4'],
            'columnTypes': ['INT_TYPE', 'INT_TYPE']}
 TUPLES2 = [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]]
 TOTAL_TUPLES2 = len(TUPLES2)
+
+UDF1_NAME, UDF2_NAME = 'udf1', 'udf2'
+UDF1_TYPE, UDF2_TYPE = LONG_TYPE, STRING_TYPE
+UDF1_ARITY, UDF2_ARITY = 1, 2
 
 
 def get_uri(name):
@@ -62,6 +70,18 @@ def local_mock(url, request):
     # Relation not found in database
     elif get_uri('NOTFOUND') in url.path:
         return {'status_code': 404}
+
+    elif url.path == '/function':
+        return {
+            'status_code': 200,
+            'content': [
+                MyriaPythonFunction(UDF1_NAME, UDF1_TYPE,
+                                    lambda i: 0, UDF1_ARITY).to_dict(),
+                MyriaPythonFunction(UDF2_NAME, UDF2_TYPE,
+                                    lambda i: 0, UDF2_ARITY).to_dict()]}
+
+    elif url.path == '/function/register':
+        return {'status_code': 200, 'content': '{}'}
 
     return None
 
@@ -291,3 +311,77 @@ class TestFluent(unittest.TestCase):
             self.assertListEqual(count.query.aggregate_list,
                                  [COUNT(UnnamedAttributeRef(1))])
             self.assertIsNotNone(count._sink().to_json())
+
+    def test_python_registered_udf(self):
+        with HTTMock(local_mock):
+            relation = MyriaRelation(FULL_NAME, connection=self.connection)
+            udf1 = id
+            udf = relation.select(lambda t: udf1(t[0]))
+
+            applys = filter(lambda op: isinstance(op, Apply),
+                            udf.query.walk())
+            self.assertEqual(len(applys), 1)
+
+            _apply = applys[0] if applys else None
+            self.assertIsNotNone(_apply)
+            self.assertEqual(len(_apply.emitters), 1)
+
+            pyudf = _apply.emitters[0][1] if apply else None
+            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertEqual(pyudf.typ, UDF1_TYPE)
+            self.assertTrue(pyudf.arguments, UDF1_ARITY)
+
+    def test_python_udf(self):
+        with HTTMock(local_mock):
+            relation = MyriaRelation(FULL_NAME, connection=self.connection)
+            udf = relation.select(lambda t: eval("5 < 10"))
+
+            _apply = next(iter(filter(lambda op: isinstance(op, Apply),
+                                      udf.query.walk())), None)
+            self.assertIsNotNone(_apply)
+            self.assertEqual(len(_apply.emitters), 1)
+
+            pyudf = _apply.emitters[0][1] if apply else None
+            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertEqual(pyudf.typ, STRING_TYPE)
+            self.assertTrue(pyudf.arguments, 2)
+            self.assertEqual([n.get_val() for n in pyudf.arguments],
+                             SCHEMA['columnNames'])
+
+    def test_python_udf_predicate(self):
+        with HTTMock(local_mock):
+            relation = MyriaRelation(FULL_NAME, connection=self.connection)
+            udf = relation.where(lambda t: eval("t[0] < 10"))
+
+            select = next(iter(filter(lambda op: isinstance(op, Select),
+                                      udf.query.walk())), None)
+            self.assertIsNotNone(select)
+
+            pyudf = select.condition
+            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertEqual(pyudf.typ, BOOLEAN_TYPE)
+            self.assertTrue(pyudf.arguments, 2)
+            self.assertEqual([n.get_val() for n in pyudf.arguments],
+                             SCHEMA['columnNames'])
+
+    def test_extension_method(self):
+        with HTTMock(local_mock):
+            relation = MyriaRelation(FULL_NAME, connection=self.connection)
+
+            @myria_function(name='my_udf', output_type=BOOLEAN_TYPE)
+            def extension(column1, column2):
+                return str(column1) == str(column2)
+
+            udf = relation.my_udf()
+
+            _apply = next(iter(filter(lambda op: isinstance(op, Apply),
+                                      udf.query.walk())), None)
+            self.assertIsNotNone(_apply)
+            self.assertEqual(len(_apply.emitters), 1)
+
+            pyudf = _apply.emitters[0][1] if apply else None
+            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertEqual(pyudf.typ, BOOLEAN_TYPE)
+            self.assertTrue(pyudf.arguments, 2)
+            self.assertEqual([n.get_val() for n in pyudf.arguments],
+                             SCHEMA['columnNames'])

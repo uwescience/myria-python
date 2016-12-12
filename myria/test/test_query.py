@@ -99,6 +99,9 @@ def local_mock(url, request):
                     'url': 'http://localhost:12345/query-completed-uri'}
         return {'status_code': 201, 'content': body}
 
+    elif url.path == '/function':
+        return {'status_code': 200, 'content': []}
+
     return None
 
 
