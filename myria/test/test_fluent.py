@@ -1,6 +1,5 @@
 import unittest
 import json
-
 from httmock import HTTMock
 from myria import MyriaSchema
 from myria.connection import MyriaConnection
@@ -13,6 +12,7 @@ from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
     PYUDF
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
 from myria.connection import MyriaConnection
+from myria.fluent import myria_function
 from myria.relation import MyriaRelation
 from myria.udf import MyriaPythonFunction, myria_function
 
@@ -394,7 +394,6 @@ class TestFluent(unittest.TestCase):
             self.assertTrue(pyudf.arguments, 2)
             self.assertEqual([n.get_val() for n in pyudf.arguments],
                              SCHEMA['columnNames'])
-
             self.assertEqual(len(server_state), 1)
             self.assertFalse(server_state.values()[0]['isMultiValued'])
             self.assertEqual(server_state.values()[0]['outputType'],

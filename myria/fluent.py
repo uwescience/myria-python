@@ -1,7 +1,7 @@
 # coding=utf-8
 
 import hashlib
-
+from collections import defaultdict
 from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
     ProjectingJoin, UnionAll, Sink, GroupBy, \
@@ -17,7 +17,6 @@ from raco.python.exceptions import PythonConvertException
 from raco.relation_key import RelationKey
 from raco.scheme import Scheme
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
-
 from myria.udf import MyriaPythonFunction, MyriaFunction
 
 
@@ -146,7 +145,7 @@ class MyriaFluentQuery(object):
     def where(self, predicate):
         """ Filter the query given a predicate """
         return MyriaFluentQuery(self, Select(
-            convert(predicate, [self.query.scheme()]),
+            self._convert(predicate, out_type=BOOLEAN_TYPE),
             self.query))
 
     def product(self, other):
@@ -172,6 +171,7 @@ class MyriaFluentQuery(object):
         predicate = self._convert(predicate,
                                   [self.query.scheme(), other.query.scheme()],
                                   out_type=BOOLEAN_TYPE)
+
 
         return MyriaFluentQuery(
             self,
@@ -322,6 +322,7 @@ class MyriaFluentQuery(object):
 
     def _convert(self, source_or_ast_or_callable,
                  scheme=None, out_type=None, multivalued=False):
+
         scheme = scheme or [self.query.scheme()]
         try:
             return convert(source_or_ast_or_callable, scheme, udfs=self.udfs)
