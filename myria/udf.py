@@ -8,7 +8,7 @@ class functionTypes(object):
   POSTGRES = 0
   PYTHON = 1
 
-def create_function(name, decription, outType, lang, isMultivalued=False, binary=None):
+def create_function(name, description, outType, lang, isMultivalued=False, binary=None):
     body = None
 
     if(lang == functionTypes.POSTGRES):
