@@ -14,7 +14,7 @@ def create_function(name, description, outType, lang, isMultivalued=False, binar
     if(lang == functionTypes.POSTGRES):
         body = {'name': name,
                 'description': description,
-                'outputType': outType,
+                'outputSchema': outType,
                 'isMultivalued': isMultivalued,
                 'lang': functionTypes.POSTGRES}
     elif(lang == functionTypes.PYTHON):
@@ -25,7 +25,7 @@ def create_function(name, description, outType, lang, isMultivalued=False, binar
             bo = base64.urlsafe_b64encode(obj)
             body = {'name': name,
                     'description': description,
-                    'outputType': outType,
+                    'outputSchema': outType,
                     'isMultivalued':isMultivalued,
                     'lang': functionTypes.PYTHON,
                     'binary': bo }
