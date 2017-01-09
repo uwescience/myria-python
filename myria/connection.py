@@ -247,7 +247,7 @@ class MyriaConnection(object):
         """Register a User Defined Function with Myria """
         body = create_function(name,text,outSchema,inSchema,lang,binary)
 
-        return self._make_request(POST, '/function/register', json.dumps(body))
+        return self._make_request(POST, '/function', json.dumps(body))
 
     def list_functions(self ):
         """list all the User Defined Functions with Myria"""

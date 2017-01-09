@@ -8,7 +8,7 @@ class functionTypes(object):
   POSTGRES = 0
   PYTHON = 1
 
-def create_function(name, text, outType, lang, inSchema = None, binary=None):
+def create_function(name, decription, outType, lang, isMultivalued=False, binary=None):
     body = None
 
     if(inSchema is None or inSchema == ""):
@@ -18,9 +18,9 @@ def create_function(name, text, outType, lang, inSchema = None, binary=None):
 
     if(lang == functionTypes.POSTGRES):
         body = {'name': name,
-                'text': text,
+                'description': description,
                 'outputType': outType,
-                'inputSchema': inputschema,
+                'isMultivalued': isMultivalued,
                 'lang': functionTypes.POSTGRES}
     elif(lang == functionTypes.PYTHON):
         if(binary is None or outType is None):
@@ -31,7 +31,7 @@ def create_function(name, text, outType, lang, inSchema = None, binary=None):
             body = {'name': name,
                     'text': text,
                     'outputType': outType,
-                    'inputSchema': inputschema,
+                    'isMultivalued':isMultivalued,
                     'lang': functionTypes.PYTHON,
                     'binary': bo }
 
