@@ -24,7 +24,7 @@ def create_function(name, decription, outType, lang, isMultivalued=False, binary
             obj = cloudpickle.dumps(binary, 2)
             bo = base64.urlsafe_b64encode(obj)
             body = {'name': name,
-                    'text': text,
+                    'description': description,
                     'outputType': outType,
                     'isMultivalued':isMultivalued,
                     'lang': functionTypes.PYTHON,
