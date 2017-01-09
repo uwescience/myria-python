@@ -11,11 +11,6 @@ class functionTypes(object):
 def create_function(name, decription, outType, lang, isMultivalued=False, binary=None):
     body = None
 
-    if(inSchema is None or inSchema == ""):
-        inputSchema = ""
-    else:
-        inputschema = inSchema.to_dict()
-
     if(lang == functionTypes.POSTGRES):
         body = {'name': name,
                 'description': description,
