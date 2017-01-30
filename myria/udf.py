@@ -15,7 +15,7 @@ def create_function(name, description, outType, lang, isMultivalued=False, binar
         body = {'name': name,
                 'description': description,
                 'outputType': outType,
-                'isMultivalued': isMultivalued,
+                'isMultiValued': isMultivalued,
                 'lang': functionTypes.POSTGRES}
     elif(lang == functionTypes.PYTHON):
         if(binary is None or outType is None):
@@ -26,7 +26,7 @@ def create_function(name, description, outType, lang, isMultivalued=False, binar
             body = {'name': name,
                     'description': description,
                     'outputType': outType,
-                    'isMultivalued':isMultivalued,
+                    'isMultiValued':isMultivalued,
                     'lang': functionTypes.PYTHON,
                     'binary': bo }
 
