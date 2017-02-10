@@ -83,6 +83,7 @@ class MyriaPostgresFunction(MyriaFunction):
             name, source, output_type, FunctionTypes.POSTGRES,
             multivalued, connection)
 
+
     @staticmethod
     def from_dict(d, connection=None):
         from myria import MyriaRelation

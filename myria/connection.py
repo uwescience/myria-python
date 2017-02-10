@@ -274,12 +274,11 @@ class MyriaConnection(object):
             execution_url=self.execution_url).create_function(
             d, overwrite_if_exists=overwrite_if_exists)
 
-
-    def get_functions(self):
+    def list_functions(self):
         """ List all the user defined functions in Myria """
         return self._wrap_get('/function')
 
-    def get_function(self, name):
+    def list_function(self, name):
         """ Get user defined functions metadata """
         return self._wrap_get('/function/{}'.format(name))
 
