@@ -243,13 +243,13 @@ class MyriaConnection(object):
 
     def create_function(self, d):
         """Register a User Defined Function with Myria """
-        return self._make_request(POST, '/function/register', json.dumps(d))
+        return self._make_request(POST, '/function', json.dumps(d))
 
-    def get_functions(self):
+    def list_functions(self):
         """ List all the user defined functions in Myria """
         return self._wrap_get('/function')
 
-    def get_function(self, name):
+    def list_function(self, name):
         """ Get user defined functions metadata """
         return self._wrap_get('/function/{}'.format(name))
 
