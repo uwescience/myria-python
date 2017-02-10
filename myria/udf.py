@@ -44,12 +44,14 @@ class MyriaFunction(object):
                 for udf in imap(connection.get_function,
                                 connection.get_functions())]
 
+
         return cls._cache[connection.execution_url]
 
     @classmethod
     def get(cls, name, connection):
         return next((f for f in cls.get_all(connection) if f.name == name),
                     None)
+
 
     def __init__(self, name, source, output_type, language, multivalued,
                  connection=None):
@@ -93,6 +95,7 @@ class MyriaPostgresFunction(MyriaFunction):
 
 
 class MyriaPythonFunction(MyriaFunction):
+
     def __init__(self, body, output_type=STRING_TYPE, name=None,
                  multivalued=False, connection=None):
         self.body = body
