@@ -52,7 +52,6 @@ class MyriaFunction(object):
         return next((f for f in cls.get_all(connection) if f.name == name),
                     None)
 
-
     def __init__(self, name, source, output_type, language, multivalued,
                  connection=None):
         self.connection = connection
@@ -77,6 +76,7 @@ class MyriaFunction(object):
 
 
 class MyriaPostgresFunction(MyriaFunction):
+
     def __init__(self, name, source, output_type,
                  multivalued=False, connection=None):
         super(MyriaPostgresFunction, self).__init__(
@@ -134,5 +134,6 @@ class MyriaPythonFunction(MyriaFunction):
             eval(d.get('source', "0")),
             d['outputType'],
             d['name'],
+
             bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
