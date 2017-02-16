@@ -43,6 +43,7 @@ class MyriaFunction(object):
                 for udf in imap(connection.get_function,
                                 connection.get_functions())]
 
+
         return cls._cache[connection.execution_url]
 
     @classmethod
