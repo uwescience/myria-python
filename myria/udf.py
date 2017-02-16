@@ -31,7 +31,8 @@ class MyriaFunction(object):
     def get(cls, name, connection):
         return cls.get_all(connection).get(name, None)
 
-    def __init__(self, name, source, signature, language, multivalued, connection=None):
+    def __init__(self, name, source, signature, language, multivalued,
+                 connection=None):
         self.connection = connection
         self.name = name
         self.source = source
@@ -54,9 +55,10 @@ class MyriaFunction(object):
 
 
 class MyriaPostgresFunction(MyriaFunction):
-    def __init__(self, name, source, signature, multivalued,connection=None):
+    def __init__(self, name, source, signature, multivalued, connection=None):
         super(MyriaPostgresFunction, self).__init__(
-            name, source, signature, FunctionTypes.POSTGRES, multivalued, connection)
+            name, source, signature, FunctionTypes.POSTGRES,
+            multivalued, connection)
 
     @staticmethod
     def from_dict(d, connection=None):
@@ -65,11 +67,12 @@ class MyriaPostgresFunction(MyriaFunction):
             d['name'],
             d.get('description', None),
             TypeSignature(d['outputType']),
+            bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
 
 
 class MyriaPythonFunction(MyriaFunction):
-    def __init__(self, name, out_type, body,  multivalued, connection=None):
+    def __init__(self, name, out_type, body, multivalued, connection=None):
         self.body = body
         self.binary = base64.urlsafe_b64encode(cloudpickle.dumps(body, 2))
         super(MyriaPythonFunction, self).__init__(
@@ -87,4 +90,5 @@ class MyriaPythonFunction(MyriaFunction):
         return MyriaPythonFunction(
             d['name'], d['outputType'],
             eval(d.get('source', "0")),
+            bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
