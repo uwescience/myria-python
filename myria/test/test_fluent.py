@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import unittest
 import json
 from httmock import HTTMock
@@ -15,24 +14,6 @@ from raco.types import STRING_TYPE, BOOLEAN_TYPE
 from myria.connection import MyriaConnection
 from myria.relation import MyriaRelation
 from myria.udf import MyriaPythonFunction, myria_function
-=======
-from httmock import urlmatch, HTTMock
-from datetime import datetime
-import unittest
-
-from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
-from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
-    PythonUDF
-from raco.types import STRING_TYPE, BOOLEAN_TYPE, LONG_TYPE
-
-from myria.connection import MyriaConnection
-from myria.fluent import myria_function
-from myria.relation import MyriaRelation
-<<<<<<< HEAD
->>>>>>> bef07e1... Robust support for LINQ API in myria-python; now deferring to RACO for expression translation
-=======
-from myria.udf import MyriaPythonFunction
->>>>>>> f619a12... Support for Python UDFs in fluent API, extension methods
 
 RELATION_NAME = 'relation'
 FULL_NAME = 'public:adhoc:' + RELATION_NAME
@@ -60,7 +41,6 @@ TOTAL_TUPLES2 = len(TUPLES2)
 UDF1_NAME, UDF2_NAME = 'udf1', 'udf2'
 UDF1_TYPE, UDF2_TYPE = LONG_TYPE, STRING_TYPE
 UDF1_ARITY, UDF2_ARITY = 1, 2
-
 
 class TestFluent(unittest.TestCase):
     def __init__(self, args):
