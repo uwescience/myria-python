@@ -148,7 +148,7 @@ class MyriaConnection(object):
                 if accept == JSON:
                     try:
                         return r.json()
-                    except ValueError, e:
+                    except ValueError as e:
                         raise MyriaError(
                             'Error %d: %s' % (r.status_code, r.text))
                 else:
