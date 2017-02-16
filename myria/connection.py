@@ -266,11 +266,11 @@ class MyriaConnection(object):
         """Register a User Defined Function with Myria """
         return self._make_request(POST, '/function', json.dumps(d))
 
-    def list_functions(self):
+    def get_functions(self):
         """ List all the user defined functions in Myria """
         return self._wrap_get('/function')
 
-    def list_function(self, name):
+    def get_function(self, name):
         """ Get user defined functions metadata """
         return self._wrap_get('/function/{}'.format(name))
 
