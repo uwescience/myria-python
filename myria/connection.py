@@ -249,11 +249,11 @@ class MyriaConnection(object):
 
         return self._make_request(POST, '/function/register', json.dumps(body))
 
-    def list_functions(self ):
+    def get_functions(self ):
         """list all the User Defined Functions with Myria"""
         return self._wrap_get('/function')
 
-    def list_function(self, name):
+    def get_function(self, name):
         return self._wrap_get('/function/{}'
                             .format(name))
 
