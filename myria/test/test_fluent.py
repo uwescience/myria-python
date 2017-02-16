@@ -89,9 +89,9 @@ def local_mock(url, request):
             'status_code': 200,
             'content': [
                 MyriaPythonFunction(UDF1_NAME, UDF1_TYPE,
-                                    lambda i: 0, UDF1_ARITY).to_dict(),
+                                    lambda i: 0, False).to_dict(),
                 MyriaPythonFunction(UDF2_NAME, UDF2_TYPE,
-                                    lambda i: 0, UDF2_ARITY).to_dict()]}
+                                    lambda i: 0, False).to_dict()]}
 
     elif url.path == '/function/register':
         return {'status_code': 200, 'content': '{}'}
