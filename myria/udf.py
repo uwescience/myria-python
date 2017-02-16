@@ -23,7 +23,7 @@ class MyriaFunction(object):
                 MyriaPythonFunction.from_dict(udf, connection)
                 if udf['lang'] == FunctionTypes.PYTHON else
                 MyriaPostgresFunction.from_dict(udf, connection)
-                for udf in connection.list_functions()]
+                for udf in connection.get_functions()]
 
         return cls._cache[connection.execution_url]
 
