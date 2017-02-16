@@ -4,7 +4,6 @@ python:
 before_install:
   - sudo locale-gen de_DE.UTF-8
 install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - pip install setuptools --upgrade
   - pip install -r requirements-dev.txt
   - python setup.py install
@@ -16,5 +15,3 @@ script:
   - bash .travis.sdist.sh
 after_success:
   - coveralls
-
-
