@@ -4,26 +4,13 @@ python:
 before_install:
   - sudo locale-gen de_DE.UTF-8
 install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - pip install setuptools --upgrade
-  - pip install pep8 --upgrade
   - pip install -r requirements-dev.txt
   - python setup.py install
   - pip install coveralls
   - pip install "ipython[all]"
-
-  - git clone https://github.com/uwescience/raco.git
-  - cd raco
-  - git checkout blob_expr_UDF_unary
-  - pip install -r requirements-dev.txt
-  - python setup.py install
-  - pip install coveralls
-  - export CXX=clang++
-  - cd ..
 script:
   - nosetests --with-coverage --cover-package=myria
   - bash .travis.sdist.sh
 after_success:
   - coveralls
-
-
