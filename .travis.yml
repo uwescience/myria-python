@@ -10,10 +10,9 @@ install:
   - pip install coveralls
   - pip install --upgrade astroid
   - pip install "ipython[all] <= 5.4"
+
 script:
   - nosetests --with-coverage --cover-package=myria --ignore-files myria/utility/cloudpickle.py
   - bash .travis.sdist.sh
 after_success:
   - coveralls
-
-
