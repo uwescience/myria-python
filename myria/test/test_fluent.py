@@ -1,6 +1,7 @@
 from httmock import urlmatch, HTTMock
 from datetime import datetime
 import unittest
+import json
 
 from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
 from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
@@ -45,55 +46,60 @@ def get_uri(name):
         'public', 'adhoc', name)
 
 
-@urlmatch(netloc=r'localhost:12345')
-def local_mock(url, request):
-    # Relation metadata
-    if url.path == get_uri(RELATION_NAME):
-        body = {'numTuples': TOTAL_TUPLES,
-                'schema': SCHEMA,
-                'created': str(CREATED_DATE)}
-        return {'status_code': 200, 'content': body}
-    elif url.path == get_uri(RELATION_NAME2):
-        body = {'numTuples': TOTAL_TUPLES2,
-                'schema': SCHEMA2,
-                'created': str(CREATED_DATE)}
-        return {'status_code': 200, 'content': body}
+def create_mock(state=None):
+    state = state if not state is None else {}
 
-    # Relation download
-    if url.path == get_uri(RELATION_NAME) + '/data':
-        body = str(TUPLES)
-        return {'status_code': 200, 'content': body}
-    elif url.path == get_uri(RELATION_NAME2) + '/data':
-        body = str(TUPLES2)
-        return {'status_code': 200, 'content': body}
+    @urlmatch(netloc=r'localhost:12345')
+    def local_mock(url, request):
+        # Relation metadata
+        if url.path == get_uri(RELATION_NAME):
+            body = {'numTuples': TOTAL_TUPLES,
+                    'schema': SCHEMA,
+                    'created': str(CREATED_DATE)}
+            return {'status_code': 200, 'content': body}
+        elif url.path == get_uri(RELATION_NAME2):
+            body = {'numTuples': TOTAL_TUPLES2,
+                    'schema': SCHEMA2,
+                    'created': str(CREATED_DATE)}
+            return {'status_code': 200, 'content': body}
 
-    # Relation not found in database
-    elif get_uri('NOTFOUND') in url.path:
-        return {'status_code': 404}
+        # Relation download
+        if url.path == get_uri(RELATION_NAME) + '/data':
+            body = str(TUPLES)
+            return {'status_code': 200, 'content': body}
+        elif url.path == get_uri(RELATION_NAME2) + '/data':
+            body = str(TUPLES2)
+            return {'status_code': 200, 'content': body}
 
-    elif url.path == '/function':
-        return {
-            'status_code': 200,
-            'content': [
-                MyriaPythonFunction(UDF1_NAME, UDF1_TYPE,
-                                    lambda i: 0, False).to_dict(),
-                MyriaPythonFunction(UDF2_NAME, UDF2_TYPE,
-                                    lambda i: 0, False).to_dict()]}
+        # Relation not found in database
+        elif get_uri('NOTFOUND') in url.path:
+            return {'status_code': 404}
 
-    elif url.path == '/function/register':
-        return {'status_code': 200, 'content': '{}'}
+        elif url.path == '/function' and request.method == 'GET':
+            return {
+                'status_code': 200,
+                'content': [
+                    MyriaPythonFunction(UDF1_NAME, UDF1_TYPE,
+                                        lambda i: 0, False).to_dict(),
+                    MyriaPythonFunction(UDF2_NAME, UDF2_TYPE,
+                                        lambda i: 0, False).to_dict()]}
 
-    return None
+        elif url.path == '/function' and request.method == 'POST':
+            body = json.loads(request.body)
+            state[body['name']] = body
+            return {'status_code': 200, 'content': '{}'}
 
+        return None
+    return local_mock
 
 class TestFluent(unittest.TestCase):
     def __init__(self, args):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             self.connection = MyriaConnection(hostname='localhost', port=12345)
         super(TestFluent, self).__init__(args)
 
     def test_scan(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             json = relation._sink().to_json()
             optype = json['plan']['fragments'][0]['operators'][0]['opType']
@@ -102,14 +108,14 @@ class TestFluent(unittest.TestCase):
             self.assertTrue(relation.name in name)
 
     def test_project_positional_expression(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select(lambda t: t.column + 12345678)
             json = projected._sink().to_json()
             self.assertTrue('12345678' in str(json))
 
     def test_project_positional_string(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select("column")
             sunk = projected._sink()
@@ -120,7 +126,7 @@ class TestFluent(unittest.TestCase):
             self.assertFalse("column2" in str(json))
 
     def test_project_named_expression(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select(foo=lambda t: t.column + 12345678)
             json = projected._sink().to_json()
@@ -128,7 +134,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue('12345678' in str(json))
 
     def test_project_named_string(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select(foo='column')
             json = projected._sink().to_json()
@@ -138,7 +144,7 @@ class TestFluent(unittest.TestCase):
             self.assertFalse("column2" in str(json))
 
     def test_project_multiple(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             projected = relation.select(foo='column', bar='column')
             json = projected._sink().to_json()
@@ -149,7 +155,7 @@ class TestFluent(unittest.TestCase):
             self.assertFalse("column2" in str(json))
 
     def test_select_expression(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             selected = relation.where(lambda t: t.column < 123456)
             json = selected._sink().to_json()
@@ -158,7 +164,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue("column" in str(json))
 
     def test_select_string(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             selected = relation.where("12345 + 67890")
             json = selected._sink().to_json()
@@ -167,7 +173,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue("67890" in str(json))
 
     def test_product(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             product = left.join(right)
@@ -180,7 +186,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(product._sink().to_json())
 
     def test_join(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right)
@@ -194,7 +200,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_predicate(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right, lambda l, r: l.column == r.column3)
@@ -210,7 +216,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_positional_attribute(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right,
@@ -228,7 +234,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_named_attribute(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right,
@@ -246,7 +252,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_dotted_attribute(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right,
@@ -265,7 +271,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_join_lambda_attribute(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             left = MyriaRelation(FULL_NAME, connection=self.connection)
             right = MyriaRelation(FULL_NAME2, connection=self.connection)
             joined = left.join(right,
@@ -283,7 +289,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(joined._sink().to_json())
 
     def test_count(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             count = relation.count()
 
@@ -292,7 +298,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(count._sink().to_json())
 
     def test_count_attribute(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             count = relation.count('column2')
 
@@ -302,7 +308,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(count._sink().to_json())
 
     def test_count_groups(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             count = relation.count('column2', groups='column')
 
@@ -313,7 +319,7 @@ class TestFluent(unittest.TestCase):
             self.assertIsNotNone(count._sink().to_json())
 
     def test_python_registered_udf(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             udf1 = id
             udf = relation.select(lambda t: udf1(t[0]))
@@ -332,7 +338,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue(pyudf.arguments, UDF1_ARITY)
 
     def test_python_udf(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             udf = relation.select(lambda t: eval("5 < 10"))
 
@@ -349,7 +355,7 @@ class TestFluent(unittest.TestCase):
                              SCHEMA['columnNames'])
 
     def test_python_udf_predicate(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             udf = relation.where(lambda t: eval("t[0] < 10"))
 
@@ -365,7 +371,8 @@ class TestFluent(unittest.TestCase):
                              SCHEMA['columnNames'])
 
     def test_extension_method(self):
-        with HTTMock(local_mock):
+        server_state = {}
+        with HTTMock(create_mock(server_state)):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
 
             @myria_function(name='my_udf', output_type=BOOLEAN_TYPE)
@@ -385,3 +392,40 @@ class TestFluent(unittest.TestCase):
             self.assertTrue(pyudf.arguments, 2)
             self.assertEqual([n.get_val() for n in pyudf.arguments],
                              SCHEMA['columnNames'])
+
+            self.assertEqual(len(server_state), 1)
+            self.assertFalse(server_state.values()[0]['isMultiValued'])
+            self.assertEqual(server_state.values()[0]['outputType'],
+                             'BOOLEAN_TYPE')
+
+
+    def test_multivalued_extension_method(self):
+        server_state = {}
+        with HTTMock(create_mock(server_state)):
+            relation = MyriaRelation(FULL_NAME, connection=self.connection)
+
+            import random
+            @myria_function(name='my_udf', output_type=BOOLEAN_TYPE,
+                            multivalued=True)
+            def extension(column1, column2):
+                return [str(column1) == str(column2),
+                        str(column1) == str(column2)]
+
+            udf = relation.my_udf()
+
+            _apply = next(iter(filter(lambda op: isinstance(op, Apply),
+                                      udf.query.walk())), None)
+            self.assertIsNotNone(_apply)
+            self.assertEqual(len(_apply.emitters), 1)
+
+            pyudf = _apply.emitters[0][1] if apply else None
+            self.assertIsInstance(pyudf, PythonUDF)
+            self.assertEqual(pyudf.typ, BOOLEAN_TYPE)
+            self.assertTrue(pyudf.arguments, 2)
+            self.assertEqual([n.get_val() for n in pyudf.arguments],
+                             SCHEMA['columnNames'])
+
+            self.assertEqual(len(server_state), 1)
+            self.assertTrue(server_state.values()[0]['isMultiValued'])
+            self.assertEqual(server_state.values()[0]['outputType'],
+                             'BOOLEAN_TYPE')
