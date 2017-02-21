@@ -47,7 +47,7 @@ def get_uri(name):
 
 
 def create_mock(state=None):
-    state = state if not state is None else {}
+    state = state if state is not None else {}
 
     @urlmatch(netloc=r'localhost:12345')
     def local_mock(url, request):
@@ -91,6 +91,7 @@ def create_mock(state=None):
 
         return None
     return local_mock
+
 
 class TestFluent(unittest.TestCase):
     def __init__(self, args):
@@ -398,13 +399,11 @@ class TestFluent(unittest.TestCase):
             self.assertEqual(server_state.values()[0]['outputType'],
                              'BOOLEAN_TYPE')
 
-
     def test_multivalued_extension_method(self):
         server_state = {}
         with HTTMock(create_mock(server_state)):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
 
-            import random
             @myria_function(name='my_udf', output_type=BOOLEAN_TYPE,
                             multivalued=True)
             def extension(column1, column2):
