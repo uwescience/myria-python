@@ -323,6 +323,7 @@ class MyriaFluentQuery(object):
     def _convert(self, source_or_ast_or_callable,
                  scheme=None, out_type=None, multivalued=False):
 
+
         scheme = scheme or [self.query.scheme()]
         try:
             return convert(source_or_ast_or_callable, scheme, udfs=self.udfs)

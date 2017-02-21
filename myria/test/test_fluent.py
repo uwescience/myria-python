@@ -1,5 +1,6 @@
 import unittest
 import json
+<<<<<<< HEAD
 from httmock import HTTMock
 from myria import MyriaSchema
 from myria.connection import MyriaConnection
@@ -7,6 +8,9 @@ from myria.relation import MyriaRelation
 from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
     UDF1_TYPE, SCHEMA
 from myria.udf import myria_function
+=======
+
+>>>>>>> 3f7b681... Added multivalued option to extension methods, added test to verify
 from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
 from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
     PYUDF
@@ -46,7 +50,6 @@ UDF1_ARITY, UDF2_ARITY = 1, 2
 
 class TestFluent(unittest.TestCase):
     def __init__(self, args):
-
         with HTTMock(create_mock()):
             self.connection = MyriaConnection(hostname='localhost', port=12345)
         super(TestFluent, self).__init__(args)
@@ -116,6 +119,7 @@ class TestFluent(unittest.TestCase):
             self.assertTrue('12345678' in str(json))
 
     def test_project_positional_string(self):
+
 
         with HTTMock(create_mock()):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
@@ -428,4 +432,3 @@ class TestFluent(unittest.TestCase):
             self.assertTrue(server_state.values()[0]['isMultiValued'])
             self.assertEqual(server_state.values()[0]['outputType'],
                              'BOOLEAN_TYPE')
-
