@@ -1,20 +1,10 @@
 import unittest
 import json
 
-<<<<<<< HEAD
 from httmock import HTTMock
 from myria import MyriaSchema
-=======
-from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
-from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
-    PythonUDF
-from raco.types import STRING_TYPE, BOOLEAN_TYPE, LONG_TYPE
-
->>>>>>> Support for Python UDFs in fluent API, extension methods
 from myria.connection import MyriaConnection
-from myria.fluent import myria_function
 from myria.relation import MyriaRelation
-<<<<<<< HEAD
 from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
     UDF1_TYPE, SCHEMA
 from myria.udf import myria_function
@@ -22,82 +12,6 @@ from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
 from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
     PYUDF
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
-=======
-from myria.udf import MyriaPythonFunction
-
-RELATION_NAME = 'relation'
-FULL_NAME = 'public:adhoc:' + RELATION_NAME
-QUALIFIED_NAME = {'userName': 'public',
-                  'programName': 'adhoc',
-                  'relationName': RELATION_NAME}
-NAME_COMPONENTS = ['public', 'adhoc', RELATION_NAME]
-SCHEMA = {'columnNames': ['column', 'column2'],
-          'columnTypes': ['INT_TYPE', 'INT_TYPE']}
-CREATED_DATE = datetime(1900, 1, 2, 3, 4)
-TUPLES = [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]]
-TOTAL_TUPLES = len(TUPLES)
-
-RELATION_NAME2 = 'relation2'
-FULL_NAME2 = 'public:adhoc:' + RELATION_NAME2
-QUALIFIED_NAME2 = {'userName': 'public',
-                   'programName': 'adhoc',
-                   'relationName': RELATION_NAME2}
-NAME_COMPONENTS2 = ['public', 'adhoc', RELATION_NAME2]
-SCHEMA2 = {'columnNames': ['column3', 'column4'],
-           'columnTypes': ['INT_TYPE', 'INT_TYPE']}
-TUPLES2 = [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]]
-TOTAL_TUPLES2 = len(TUPLES2)
-
-UDF1_NAME, UDF2_NAME = 'udf1', 'udf2'
-UDF1_TYPE, UDF2_TYPE = LONG_TYPE, STRING_TYPE
-UDF1_ARITY, UDF2_ARITY = 1, 2
-
-
-def get_uri(name):
-    return '/dataset/user-{}/program-{}/relation-{}'.format(
-        'public', 'adhoc', name)
-
-
-@urlmatch(netloc=r'localhost:12345')
-def local_mock(url, request):
-    # Relation metadata
-    if url.path == get_uri(RELATION_NAME):
-        body = {'numTuples': TOTAL_TUPLES,
-                'schema': SCHEMA,
-                'created': str(CREATED_DATE)}
-        return {'status_code': 200, 'content': body}
-    elif url.path == get_uri(RELATION_NAME2):
-        body = {'numTuples': TOTAL_TUPLES2,
-                'schema': SCHEMA2,
-                'created': str(CREATED_DATE)}
-        return {'status_code': 200, 'content': body}
-
-    # Relation download
-    if url.path == get_uri(RELATION_NAME) + '/data':
-        body = str(TUPLES)
-        return {'status_code': 200, 'content': body}
-    elif url.path == get_uri(RELATION_NAME2) + '/data':
-        body = str(TUPLES2)
-        return {'status_code': 200, 'content': body}
-
-    # Relation not found in database
-    elif get_uri('NOTFOUND') in url.path:
-        return {'status_code': 404}
-
-    elif url.path == '/function':
-        return {
-            'status_code': 200,
-            'content': [
-                MyriaPythonFunction(UDF1_NAME, UDF1_TYPE,
-                                    lambda i: 0, False).to_dict(),
-                MyriaPythonFunction(UDF2_NAME, UDF2_TYPE,
-                                    lambda i: 0, False).to_dict()]}
-
-    elif url.path == '/function/register':
-        return {'status_code': 200, 'content': '{}'}
-
-    return None
->>>>>>> Support for Python UDFs in fluent API, extension methods
 
 
 class TestFluent(unittest.TestCase):
@@ -412,7 +326,6 @@ class TestFluent(unittest.TestCase):
     def test_extension_method(self):
         server_state = {}
         with HTTMock(create_mock(server_state)):
-
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
 
             @myria_function(name='my_udf', output_type=BOOLEAN_TYPE)
@@ -467,4 +380,3 @@ class TestFluent(unittest.TestCase):
             self.assertTrue(server_state.values()[0]['isMultiValued'])
             self.assertEqual(server_state.values()[0]['outputType'],
                              'BOOLEAN_TYPE')
-

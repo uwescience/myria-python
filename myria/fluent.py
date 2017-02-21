@@ -67,7 +67,11 @@ def _create_udf(source_or_ast_or_callable, schema, connection,
 
     MyriaPythonFunction(source_or_ast_or_callable,
                         str(out_type),
+<<<<<<< HEAD
                         name,
+=======
+                        source_or_ast_or_callable,
+>>>>>>> Added multivalued option to extension methods, added test to verify
                         multivalued,
                         connection=connection).register()
     return PYUDF(
@@ -318,7 +322,6 @@ class MyriaFluentQuery(object):
 
     def _convert(self, source_or_ast_or_callable,
                  scheme=None, out_type=None, multivalued=False):
-
         scheme = scheme or [self.query.scheme()]
         try:
             return convert(source_or_ast_or_callable, scheme, udfs=self.udfs)
