@@ -22,15 +22,17 @@ from raco.types import STRING_TYPE, BOOLEAN_TYPE
 from myria.udf import MyriaPythonFunction, MyriaFunction
 
 
-def myria_function(name=None, output_type=STRING_TYPE):
+def myria_function(name=None, output_type=STRING_TYPE, multivalued=False):
     def decorator(f):
         udf_name = name or f.__name__
 
         setattr(
             MyriaFluentQuery,
             udf_name,
-            lambda self: self.select(**{udf_name: f,
-                                        'types': {udf_name: output_type}}))
+            lambda self: self.select(
+                **{udf_name: f,
+                   'types': {udf_name: output_type},
+                   'multivalued': {udf_name: multivalued}}))
 
     return decorator
 
@@ -75,14 +77,14 @@ def _unique_name(query):
 
 
 def _create_udf(source_or_ast_or_callable, schema, connection,
-                name=None, out_type=None):
+                name=None, out_type=None, multivalued=False):
     name = name or _unique_name(str(source_or_ast_or_callable))
     out_type = out_type or STRING_TYPE
 
     MyriaPythonFunction(name,
                         str(out_type),
                         source_or_ast_or_callable,
-                        sum(map(len, schema)),
+                        multivalued,
                         connection=connection).register()
     return PythonUDF(
         StringLiteral(name),
@@ -130,15 +132,20 @@ class MyriaFluentQuery(object):
 
     def select(self, *args, **kwargs):
         """ Perform a projection over the underlying query """
-        types = defaultdict(lambda: None, kwargs.pop('types', {}))
+        types = kwargs.pop('types', {})
+        multivalued = kwargs.pop('multivalued', {})
         positional_attributes = (
             [(arg, NamedAttributeRef(arg)) if isinstance(arg, basestring)
-             else ('_' + str(index), self._convert(arg,
-                                                   out_type=types.get(index)))
+             else ('_' + str(index),
+                   self._convert(arg,
+                                 out_type=types.get(index),
+                                 multivalued=multivalued.get(index)))
              for index, arg in enumerate(args)])
         named_attributes = (
             [(n, NamedAttributeRef(v)) if isinstance(v, basestring)
-             else (n, self._convert(v, out_type=types.get(n)))
+             else (n, self._convert(v,
+                                    out_type=types.get(n),
+                                    multivalued=multivalued.get(n)))
              for (n, v) in kwargs.items()])
         return MyriaFluentQuery(self,
                                 Apply(positional_attributes + named_attributes,
@@ -320,13 +327,14 @@ class MyriaFluentQuery(object):
         return compile_to_json(str(self.query), optimized, myria)
 
     def _convert(self, source_or_ast_or_callable,
-                 scheme=None, out_type=None):
+                 scheme=None, out_type=None, multivalued=False):
         scheme = scheme or [self.query.scheme()]
         try:
             return convert(source_or_ast_or_callable, scheme, udfs=self.udfs)
         except PythonConvertException:
             udf = _create_udf(source_or_ast_or_callable, scheme,
                               connection=self.connection,
-                              out_type=out_type)
+                              out_type=out_type,
+                              multivalued=multivalued)
             self.udfs.append([udf.name, len(udf.arguments), udf.typ])
             return udf
