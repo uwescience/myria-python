@@ -12,6 +12,37 @@ from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
 from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
     PYUDF
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
+from myria.connection import MyriaConnection
+from myria.fluent import myria_function
+from myria.relation import MyriaRelation
+from myria.udf import MyriaPythonFunction
+
+RELATION_NAME = 'relation'
+FULL_NAME = 'public:adhoc:' + RELATION_NAME
+QUALIFIED_NAME = {'userName': 'public',
+                  'programName': 'adhoc',
+                  'relationName': RELATION_NAME}
+NAME_COMPONENTS = ['public', 'adhoc', RELATION_NAME]
+SCHEMA = {'columnNames': ['column', 'column2'],
+          'columnTypes': ['INT_TYPE', 'INT_TYPE']}
+CREATED_DATE = datetime(1900, 1, 2, 3, 4)
+TUPLES = [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]]
+TOTAL_TUPLES = len(TUPLES)
+
+RELATION_NAME2 = 'relation2'
+FULL_NAME2 = 'public:adhoc:' + RELATION_NAME2
+QUALIFIED_NAME2 = {'userName': 'public',
+                   'programName': 'adhoc',
+                   'relationName': RELATION_NAME2}
+NAME_COMPONENTS2 = ['public', 'adhoc', RELATION_NAME2]
+SCHEMA2 = {'columnNames': ['column3', 'column4'],
+           'columnTypes': ['INT_TYPE', 'INT_TYPE']}
+TUPLES2 = [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]]
+TOTAL_TUPLES2 = len(TUPLES2)
+
+UDF1_NAME, UDF2_NAME = 'udf1', 'udf2'
+UDF1_TYPE, UDF2_TYPE = LONG_TYPE, STRING_TYPE
+UDF1_ARITY, UDF2_ARITY = 1, 2
 
 
 class TestFluent(unittest.TestCase):
