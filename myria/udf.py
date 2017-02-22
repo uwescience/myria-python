@@ -6,7 +6,6 @@ from itertools import imap
 from raco.backends.myria.connection import FunctionTypes
 from raco.python.exceptions import PythonConvertException
 from raco.python.util.decompile import get_source
-from raco.types import STRING_TYPE
 
 from myria.utility import cloudpickle
 
@@ -95,7 +94,6 @@ class MyriaPostgresFunction(MyriaFunction):
 
 
 class MyriaPythonFunction(MyriaFunction):
-
     def __init__(self, body, output_type=STRING_TYPE, name=None,
                  multivalued=False, connection=None):
         self.body = body
