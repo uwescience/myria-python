@@ -1,6 +1,5 @@
 import unittest
 import json
-<<<<<<< HEAD
 from httmock import HTTMock
 from myria import MyriaSchema
 from myria.connection import MyriaConnection
@@ -8,15 +7,11 @@ from myria.relation import MyriaRelation
 from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
     UDF1_TYPE, SCHEMA
 from myria.udf import myria_function
-=======
-
->>>>>>> 3f7b681... Added multivalued option to extension methods, added test to verify
 from raco.algebra import CrossProduct, Join, ProjectingJoin, Apply, Select
 from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
     PYUDF
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
 from myria.connection import MyriaConnection
-from myria.fluent import myria_function
 from myria.relation import MyriaRelation
 from myria.udf import MyriaPythonFunction, myria_function
 

@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import hashlib
-from collections import defaultdict
 from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
     ProjectingJoin, UnionAll, Sink, GroupBy, \
