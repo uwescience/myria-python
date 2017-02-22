@@ -13,9 +13,8 @@ from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
     PYUDF
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
 from myria.connection import MyriaConnection
-from myria.fluent import myria_function
 from myria.relation import MyriaRelation
-from myria.udf import MyriaPythonFunction
+from myria.udf import MyriaPythonFunction, myria_function
 
 RELATION_NAME = 'relation'
 FULL_NAME = 'public:adhoc:' + RELATION_NAME
