@@ -10,7 +10,7 @@ install:
   - pip install coveralls
   - pip install "ipython[all]"
 script:
-  - nosetests --with-coverage --cover-package=myria
+  - nosetests --with-coverage --cover-package=myria --ignore-files myria/utility/cloudpickle.py
   - bash .travis.sdist.sh
 after_success:
   - coveralls

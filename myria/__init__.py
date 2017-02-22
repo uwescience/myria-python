@@ -3,6 +3,7 @@ from .errors import *
 from .relation import *
 from .query import *
 from .schema import *
+from .udf import *
 import cmd
 
 # IPython is not required, so swallow exception if not installed
