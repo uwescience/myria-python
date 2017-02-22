@@ -1,7 +1,6 @@
 # coding=utf-8
 
 import hashlib
-from collections import defaultdict
 
 from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
@@ -20,21 +19,6 @@ from raco.scheme import Scheme
 from raco.types import STRING_TYPE, BOOLEAN_TYPE
 
 from myria.udf import MyriaPythonFunction, MyriaFunction
-
-
-def myria_function(name=None, output_type=STRING_TYPE, multivalued=False):
-    def decorator(f):
-        udf_name = name or f.__name__
-
-        setattr(
-            MyriaFluentQuery,
-            udf_name,
-            lambda self: self.select(
-                **{udf_name: f,
-                   'types': {udf_name: output_type},
-                   'multivalued': {udf_name: multivalued}}))
-
-    return decorator
 
 
 def _get_column_index(inputs, aliases, attribute):
@@ -81,9 +65,9 @@ def _create_udf(source_or_ast_or_callable, schema, connection,
     name = name or _unique_name(str(source_or_ast_or_callable))
     out_type = out_type or STRING_TYPE
 
-    MyriaPythonFunction(name,
+    MyriaPythonFunction(source_or_ast_or_callable,
                         str(out_type),
-                        source_or_ast_or_callable,
+                        name,
                         multivalued,
                         connection=connection).register()
     return PythonUDF(

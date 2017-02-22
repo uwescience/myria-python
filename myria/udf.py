@@ -1,16 +1,34 @@
 """Creating User Defined functions"""
+import re
 import base64
 
 from raco.backends.myria.connection import FunctionTypes
 from raco.python.exceptions import PythonConvertException
 from raco.python.util.decompile import get_source
+from raco.types import STRING_TYPE
 
 from myria.utility import cloudpickle
 
 
-class TypeSignature(object):
-    def __init__(self, out):
-        self.output_type = out
+def myria_function(name=None, output_type=STRING_TYPE, multivalued=False,
+                   connection=None):
+    def decorator(f):
+        from myria import MyriaFluentQuery
+        udf_name = name or f.__name__
+
+        if connection:
+            MyriaPythonFunction(f, output_type, name,
+                                multivalued, connection).register()
+
+        setattr(
+            MyriaFluentQuery,
+            udf_name,
+            lambda self: self.select(
+                **{udf_name: f,
+                   'types': {udf_name: output_type},
+                   'multivalued': {udf_name: multivalued}}))
+
+    return decorator
 
 
 class MyriaFunction(object):
@@ -31,12 +49,12 @@ class MyriaFunction(object):
     def get(cls, name, connection):
         return cls.get_all(connection).get(name, None)
 
-    def __init__(self, name, source, signature, language, multivalued,
+    def __init__(self, name, source, output_type, language, multivalued,
                  connection=None):
         self.connection = connection
         self.name = name
         self.source = source
-        self.signature = signature
+        self.output_type = output_type
         self.multivalued = multivalued
         self.language = language
 
@@ -49,15 +67,16 @@ class MyriaFunction(object):
     def to_dict(self):
         return {'name': self.name,
                 'description': self.source,
-                'outputType': self.signature.output_type,
+                'outputType': self.output_type,
                 'isMultiValued': self.multivalued,
                 'lang': self.language}
 
 
 class MyriaPostgresFunction(MyriaFunction):
-    def __init__(self, name, source, signature, multivalued, connection=None):
+    def __init__(self, name, source, output_type,
+                 multivalued=False, connection=None):
         super(MyriaPostgresFunction, self).__init__(
-            name, source, signature, FunctionTypes.POSTGRES,
+            name, source, output_type, FunctionTypes.POSTGRES,
             multivalued, connection)
 
     @staticmethod
@@ -66,19 +85,19 @@ class MyriaPostgresFunction(MyriaFunction):
         return MyriaPostgresFunction(
             d['name'],
             d.get('description', None),
-            TypeSignature(d['outputType']),
+            d['outputType'],
             bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
 
 
 class MyriaPythonFunction(MyriaFunction):
-    def __init__(self, name, out_type, body,
+    def __init__(self, body, output_type=STRING_TYPE, name=None,
                  multivalued=False, connection=None):
         self.body = body
         self.binary = base64.urlsafe_b64encode(cloudpickle.dumps(body, 2))
         super(MyriaPythonFunction, self).__init__(
-            name, self._get_source(body), TypeSignature(out_type),
-            FunctionTypes.POSTGRES, multivalued, connection)
+            self._get_name(name, body), self._get_source(body), output_type,
+            FunctionTypes.PYTHON, multivalued, connection)
 
     def to_dict(self):
         d = super(MyriaPythonFunction, self).to_dict()
@@ -93,10 +112,22 @@ class MyriaPythonFunction(MyriaFunction):
             return None
 
     @staticmethod
+    def _get_name(name, body):
+        if name:
+            return name
+        elif re.match(r'^\w+$', body.__name__):
+            return body.__name__
+        else:
+            raise PythonConvertException(
+                'Could not automatically generate name for function ' +
+                body.__name__)
+
+    @staticmethod
     def from_dict(d, connection=None):
         from myria import MyriaRelation
         return MyriaPythonFunction(
-            d['name'], d['outputType'],
             eval(d.get('source', "0")),
+            d['outputType'],
+            d['name'],
             bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
