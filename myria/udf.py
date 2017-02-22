@@ -6,8 +6,10 @@ from itertools import imap
 from raco.backends.myria.connection import FunctionTypes
 from raco.python.exceptions import PythonConvertException
 from raco.python.util.decompile import get_source
+from raco.types import STRING_TYPE
 
 from myria.utility import cloudpickle
+
 
 def myria_function(name=None, output_type=STRING_TYPE, multivalued=False,
                    connection=None):
@@ -29,6 +31,7 @@ def myria_function(name=None, output_type=STRING_TYPE, multivalued=False,
 
     return decorator
 
+
 class MyriaFunction(object):
     _cache = {}
 
@@ -39,10 +42,8 @@ class MyriaFunction(object):
                 MyriaPythonFunction.from_dict(udf, connection)
                 if udf['lang'] == FunctionTypes.PYTHON else
                 MyriaPostgresFunction.from_dict(udf, connection)
-
                 for udf in imap(connection.get_function,
                                 connection.get_functions())]
-
 
         return cls._cache[connection.execution_url]
 
@@ -60,11 +61,12 @@ class MyriaFunction(object):
         self.multivalued = multivalued
         self.language = language
 
-    def register(self):
+    def register(self, overwrite_if_exists=True):
         from myria import MyriaRelation
         connection = self.connection or MyriaRelation.DefaultConnection
         self.get_all(connection).append(self)
-        connection.create_function(self.to_dict())
+        connection.create_function(self.to_dict(),
+                                   overwrite_if_exists=overwrite_if_exists)
 
     def to_dict(self):
         return {'name': self.name,
@@ -75,7 +77,6 @@ class MyriaFunction(object):
 
 
 class MyriaPostgresFunction(MyriaFunction):
-
     def __init__(self, name, source, output_type,
                  multivalued=False, connection=None):
         super(MyriaPostgresFunction, self).__init__(
@@ -132,6 +133,5 @@ class MyriaPythonFunction(MyriaFunction):
             eval(d.get('source', "0")),
             d['outputType'],
             d['name'],
-
             bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
