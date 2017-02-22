@@ -2,8 +2,8 @@
 import base64
 
 from raco.backends.myria.connection import FunctionTypes
+from raco.python.exceptions import PythonConvertException
 from raco.python.util.decompile import get_source
-from raco.types import STRING_TYPE
 
 from myria.utility import cloudpickle
 
@@ -72,17 +72,25 @@ class MyriaPostgresFunction(MyriaFunction):
 
 
 class MyriaPythonFunction(MyriaFunction):
-    def __init__(self, name, out_type, body, multivalued, connection=None):
+    def __init__(self, name, out_type, body,
+                 multivalued=False, connection=None):
         self.body = body
         self.binary = base64.urlsafe_b64encode(cloudpickle.dumps(body, 2))
         super(MyriaPythonFunction, self).__init__(
-            name, get_source(body), TypeSignature(out_type),
+            name, self._get_source(body), TypeSignature(out_type),
             FunctionTypes.POSTGRES, multivalued, connection)
 
     def to_dict(self):
         d = super(MyriaPythonFunction, self).to_dict()
         d['binary'] = self.binary
         return d
+
+    @staticmethod
+    def _get_source(body):
+        try:
+            return get_source(body)
+        except PythonConvertException:
+            return None
 
     @staticmethod
     def from_dict(d, connection=None):
