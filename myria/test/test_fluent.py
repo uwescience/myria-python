@@ -9,9 +9,8 @@ from raco.expression import UnnamedAttributeRef, TAUTOLOGY, COUNTALL, COUNT, \
 from raco.types import STRING_TYPE, BOOLEAN_TYPE, LONG_TYPE
 
 from myria.connection import MyriaConnection
-from myria.fluent import myria_function
 from myria.relation import MyriaRelation
-from myria.udf import MyriaPythonFunction
+from myria.udf import MyriaPythonFunction, myria_function
 
 RELATION_NAME = 'relation'
 FULL_NAME = 'public:adhoc:' + RELATION_NAME
@@ -79,10 +78,10 @@ def create_mock(state=None):
             return {
                 'status_code': 200,
                 'content': [
-                    MyriaPythonFunction(UDF1_NAME, UDF1_TYPE,
-                                        lambda i: 0, False).to_dict(),
-                    MyriaPythonFunction(UDF2_NAME, UDF2_TYPE,
-                                        lambda i: 0, False).to_dict()]}
+                    MyriaPythonFunction(
+                        lambda i: 0, UDF1_TYPE, UDF1_NAME, False).to_dict(),
+                    MyriaPythonFunction(
+                        lambda i: 0, UDF2_NAME, UDF2_TYPE, False).to_dict()]}
 
         elif url.path == '/function' and request.method == 'POST':
             body = json.loads(request.body)
