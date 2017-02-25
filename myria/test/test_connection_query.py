@@ -77,6 +77,12 @@ class TestQuery(unittest.TestCase):
             status = self.connection.execute_query(q)
             self.assertEquals(status, query_status(q))
 
+    def test_compile_plan(self):
+        with HTTMock(local_mock):
+            myrial = "a = empty(i:int);\nstore(a, a);"
+            json = self.connection.compile_program(myrial, language="MyriaL")
+            self.assertEqual(json['rawQuery'], myrial)
+
     def test_validate(self):
         q = query()
         with HTTMock(local_mock):
