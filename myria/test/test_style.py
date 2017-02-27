@@ -26,7 +26,6 @@ class StyleTest(unittest.TestCase):
             '--ignore=cloudpickle.py,test_fluent.py',
             'myria'])
 
-
     def test_errcatch(self):
         "make sure that we get an exception if the command does not exit 0"
         with self.assertRaises(subprocess.CalledProcessError):
