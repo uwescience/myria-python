@@ -12,7 +12,7 @@ if IPython:
             if IPython is None:
                 return
 
-            rest_url = u'http://foo.bar:80'
+            rest_url = u'http://localhost:12345'
             execution_url = u'http://baz.qux:999'
             language = 'Elven'
             timeout = 999
