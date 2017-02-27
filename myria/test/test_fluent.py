@@ -1,7 +1,12 @@
 import unittest
+<<<<<<< HEAD
 import json
 from httmock import HTTMock
 from myria import MyriaSchema
+=======
+
+from httmock import HTTMock
+>>>>>>> 7dae515... Use separate /function API endpoints, add UDF tests, extract server mock into separate module
 from myria.connection import MyriaConnection
 from myria.relation import MyriaRelation
 from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
