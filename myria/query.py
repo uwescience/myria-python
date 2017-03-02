@@ -103,7 +103,8 @@ class MyriaQuery(object):
 
     def kill(self):
         """ Kill this query """
-        return self.connection.kill_query(self.query_id)
+        self.connection.kill_query(self.query_id)
+        self.status = None
 
     def to_dict(self):
         """ Download the JSON results of the query """
