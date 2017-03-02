@@ -54,6 +54,8 @@ class MyriaRelation(object):
     def delete(self):
         """ Delete this relation"""
         self.connection.delete_dataset(self.qualified_name)
+        self._metadata = None
+        self.is_persisted = []
 
     def to_dataframe(self, index=None):
         """ Convert the query result to a Pandas DataFrame """
