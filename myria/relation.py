@@ -51,6 +51,10 @@ class MyriaRelation(object):
         return self.connection.download_dataset(self.qualified_name) \
             if self.is_persisted else []
 
+    def delete(self):
+        """ Delete this relation"""
+        self.connection.delete_dataset(self.qualified_name)
+
     def to_dataframe(self, index=None):
         """ Convert the query result to a Pandas DataFrame """
         if not DataFrame:
