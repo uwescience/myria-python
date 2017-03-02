@@ -362,6 +362,14 @@ class MyriaConnection(object):
         body = json.dumps(query)
         return self._make_request(POST, '/query/validate', body)
 
+    def kill_query(self, query_id):
+        """Kill the running query in Myria.
+
+        Args:
+            query_id: the id of a submitted query
+        """
+        return self._wrap_delete('/query/query-%d' % int(query_id))
+
     def get_query_status(self, query_id):
         """Get the status of a submitted query.
 
