@@ -26,12 +26,11 @@ The following example illustrates a subset of the functionality available in the
 from myria import *
 
 ## Establish a default connection to Myria
-
-MyriaRelation.DefaultConnection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu')
+MyriaRelation.DefaultConnection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu:8753')
 
 ## Higher-level interaction via relation and query instances
 query = MyriaQuery.submit(
-"""books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/books.csv',
+    """books = load('https://raw.githubusercontent.com/uwescience/myria-python/master/ipnb%20examples/books.csv',
                 csv(schema(name:string, pages:int)));
    longerBooks = [from books where pages > 300 emit name];
    store(longerBooks, LongerBooks);""")
@@ -50,7 +49,7 @@ relation = MyriaRelation(relation='LongerBooks')
 print len(relation)
 
 ## Lower-level interaction via the REST API
-connection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu')
+connection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu:8753')
 datasets = connection.datasets()
 ```
 
@@ -66,7 +65,6 @@ In this Python example, we query the smallTable relation by creating a `count(*)
 
 ```python
 from myria import *
-
 connection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu:8753')
 
 query = MyriaQuery.submit("""
@@ -83,6 +81,7 @@ print query.to_dict()
 In the previous example we downloaded the result of a query.  We can also download data that has been stored as a relation:
 
 ```python
+from myria import *
 connection = MyriaConnection(rest_url='http://demo.myria.cs.washington.edu:8753')
 
 # Load some data and store it in Myria
