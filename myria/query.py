@@ -61,8 +61,9 @@ class MyriaQuery(object):
               file, http, hdfs) and any combination may be assigned to workers.
               For local file URIs (file://foo/bar), the file is assumed to
               be local (or locally accessible).
-        scan_type: Something like "CSV"
-        scan_parameters: Options to the Reader, such as {"skip": 1}.
+        scan_type: Reader parameters, e.g., {'readerType': 'CSV', "skip": 1}.
+                Schema is inserted into this.
+        scan_parameters: Additional options to the TupleSource operator.
         """
         return MyriaQuery.submit_plan(
             myria.plans.get_parallel_import_plan(
