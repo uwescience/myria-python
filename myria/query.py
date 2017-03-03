@@ -137,6 +137,3 @@ class MyriaQuery(object):
             self._qualified_name = dataset[0]['relationKey']
             self._name = MyriaRelation._get_name(self._qualified_name)
             self._components = MyriaRelation._get_name_components(self._name)
-        else:
-            raise AttributeError('Unable to load query metadata '
-                                 '(query status={})'.format(self.status))
