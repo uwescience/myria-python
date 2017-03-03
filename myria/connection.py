@@ -182,7 +182,7 @@ class MyriaConnection(object):
     def _wrap_post(self, selector, data=None, params=None, status=None,
                    accepted=None):
         if status is None:
-            status = [201, 202]
+            status = [200, 201, 202]
             if accepted is None:
                 accepted = [202]
         else:
