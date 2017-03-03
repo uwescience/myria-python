@@ -128,6 +128,7 @@ class MyriaQuery(object):
                 raise requests.Timeout()
             time.sleep(1)
         self._on_completed()
+        return self
 
     def _on_completed(self):
         """ Load query metadata after query completion """
