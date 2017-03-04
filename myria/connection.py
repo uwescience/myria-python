@@ -201,7 +201,7 @@ class MyriaConnection(object):
             raise MyriaError(r)
 
     def _wrap_delete(self, selector, data=None, params=None, status=None,
-                   accepted=None):
+                     accepted=None):
         if status is None:
             status = [201, 202]
             if accepted is None:
