@@ -173,7 +173,7 @@ work = [(1, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/TwitterK-part1.c
         (2, 'https://s3-us-west-2.amazonaws.com/uwdb/sampleData/TwitterK-part2.csv')]
 
 # Upload the data (CSV is the default upload type)
-query = query = MyriaQuery.parallel_import(relation=relation, work=work)
+query = MyriaQuery.parallel_import(relation=relation, work=work)
 
 print query.status
 ```
