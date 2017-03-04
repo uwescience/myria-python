@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='myria-python',
     #namespace_packages = ['myria'],
-    version='1.2.7',
+    version='1.2.8',
     author='Daniel Halperin',
     author_email='dhalperi@cs.washington.edu',
     packages=find_packages(),
