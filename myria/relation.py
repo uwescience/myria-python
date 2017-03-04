@@ -82,7 +82,7 @@ class MyriaRelation(object):
 
     def __len__(self):
         """ The number of tuples in the relation """
-        return int(self.metadata['numTuples'])
+        return max(int(self.metadata['numTuples']), 0)
 
     @property
     def metadata(self):
