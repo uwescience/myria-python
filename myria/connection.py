@@ -184,7 +184,7 @@ class MyriaConnection(object):
     def _wrap_post(self, selector, data=None, params=None, status=None,
                    accepted=None):
         if status is None:
-            status = [201, 202]
+            status = [200, 201, 202]
             if accepted is None:
                 accepted = [202]
         else:
@@ -201,6 +201,20 @@ class MyriaConnection(object):
             return r.json()
         else:
             raise MyriaError(r)
+
+    def _wrap_delete(self, selector, data=None, params=None, status=None,
+                   accepted=None):
+        if status is None:
+            status = [201, 202]
+            if accepted is None:
+                accepted = [202]
+        else:
+            if accepted is None:
+                accepted = []
+
+        if '://' not in selector:
+            selector = self._url_start + selector
+        r = self._session.delete(selector, data=data)
 
     def workers(self):
         """Return a dictionary of the workers"""
@@ -232,6 +246,13 @@ class MyriaConnection(object):
                                       relation_key['programName'],
                                       relation_key['relationName']),
                               params={'format': 'json'})
+
+    def delete_dataset(self, relation_key):
+        """Delete a relation"""
+        return self._wrap_delete('/dataset/user-{}/program-{}/relation-{}'
+                              .format(relation_key['userName'],
+                                      relation_key['programName'],
+                                      relation_key['relationName']))
 
     @staticmethod
     def _ensure_schema(schema):
@@ -357,6 +378,14 @@ class MyriaConnection(object):
 
         body = json.dumps(query)
         return self._make_request(POST, '/query/validate', body)
+
+    def kill_query(self, query_id):
+        """Kill the running query in Myria.
+
+        Args:
+            query_id: the id of a submitted query
+        """
+        return self._wrap_delete('/query/query-%d' % int(query_id))
 
     def get_query_status(self, query_id):
         """Get the status of a submitted query.
