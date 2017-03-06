@@ -203,7 +203,7 @@ class MyriaConnection(object):
             raise MyriaError(r)
 
     def _wrap_delete(self, selector, data=None, params=None, status=None,
-                   accepted=None):
+                     accepted=None):
         if status is None:
             status = [201, 202]
             if accepted is None:
@@ -250,9 +250,9 @@ class MyriaConnection(object):
     def delete_dataset(self, relation_key):
         """Delete a relation"""
         return self._wrap_delete('/dataset/user-{}/program-{}/relation-{}'
-                              .format(relation_key['userName'],
-                                      relation_key['programName'],
-                                      relation_key['relationName']))
+                                 .format(relation_key['userName'],
+                                         relation_key['programName'],
+                                         relation_key['relationName']))
 
     @staticmethod
     def _ensure_schema(schema):
