@@ -70,7 +70,6 @@ class MyriaRelation(MyriaFluentQuery):
                 .execute(relation))
 
     def instance_load(self, url, data_format='CSV', **kwargs):
-
         """ Generate a query that loads data from the given
             URL into the relation """
         if self.parent is not None:
