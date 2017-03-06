@@ -30,11 +30,31 @@ class TestFluent(unittest.TestCase):
             self.assertTrue(relation.name in name)
 
     def test_load(self):
-        with HTTMock(create_mock()):
+        state = {}
+        with HTTMock(create_mock(state)):
             url = 'file:///foo.bar'
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             relation.load(url, schema=MyriaSchema(SCHEMA))
             plan = relation._sink().to_json()
+            text = json.dumps(plan['plan']['fragments'][1]['operators'][0])
+            self.assertTrue('FileScan' in text)
+            self.assertTrue('TupleSource' in text)
+            self.assertTrue(url in text)
+
+            relation.execute()
+            plan = state['query']
+            text = json.dumps(plan['plan']['fragments'][0]['operators'][0])
+            self.assertTrue('FileScan' in text)
+            self.assertTrue('TupleSource' in text)
+            self.assertTrue(url in text)
+
+    def test_static_load(self):
+        state = {}
+        with HTTMock(create_mock(state)):
+            url = 'file:///foo.bar'
+            MyriaRelation.load(FULL_NAME, url, MyriaSchema(SCHEMA),
+                               connection=self.connection)
+            plan = state['query']
             text = json.dumps(plan['plan']['fragments'][1]['operators'][0])
             self.assertTrue('FileScan' in text)
             self.assertTrue('TupleSource' in text)
