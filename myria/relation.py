@@ -73,7 +73,6 @@ class MyriaRelation(MyriaFluentQuery):
 
         """ Generate a query that loads data from the given
             URL into the relation """
-
         if self.parent is not None:
             raise MyriaError('Load must be first invocation in fluent query.')
         elif self._schema is None and 'schema' not in kwargs:
