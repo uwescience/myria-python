@@ -1,6 +1,8 @@
 import unittest
+import json
 
 from httmock import HTTMock
+from myria import MyriaSchema
 from myria.connection import MyriaConnection
 from myria.relation import MyriaRelation
 from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
@@ -26,6 +28,17 @@ class TestFluent(unittest.TestCase):
             name = json['plan']['fragments'][0]['operators'][0]['opName']
             self.assertTrue('Scan' in optype)
             self.assertTrue(relation.name in name)
+
+    def test_load(self):
+        with HTTMock(create_mock()):
+            url = 'file:///foo.bar'
+            relation = MyriaRelation(FULL_NAME, connection=self.connection)
+            relation.load(url, schema=MyriaSchema(SCHEMA))
+            plan = relation._sink().to_json()
+            text = json.dumps(plan['plan']['fragments'][1]['operators'][0])
+            self.assertTrue('FileScan' in text)
+            self.assertTrue('TupleSource' in text)
+            self.assertTrue(url in text)
 
     def test_project_positional_expression(self):
         with HTTMock(create_mock()):

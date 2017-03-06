@@ -5,7 +5,7 @@ import hashlib
 from raco import compile
 from raco.algebra import Store, Select, Apply, Scan, CrossProduct, Sequence, \
     ProjectingJoin, UnionAll, Sink, GroupBy, \
-    Limit, Intersection, Difference, Distinct, OrderBy, EmptyRelation
+    Limit, Intersection, Difference, Distinct, OrderBy, EmptyRelation, FileScan
 from raco.backends.logical import OptLogicalAlgebra
 from raco.backends.myria import MyriaLeftDeepTreeAlgebra
 from raco.backends.myria import compile_to_json
@@ -98,6 +98,12 @@ class MyriaFluentQuery(object):
         return Scan(RelationKey(*components),
                     MyriaCatalog(self.connection).get_scheme(
                         RelationKey(*components)))
+
+    @staticmethod
+    def _load(url, scheme, data_format='CSV', **kwargs):
+        return FileScan(url, data_format,
+                        Scheme(zip(scheme.names, scheme.types)),
+                        options=kwargs)
 
     def _store(self, relation):
         """ Store the result of a query """
