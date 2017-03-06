@@ -1,4 +1,5 @@
 import unittest
+import json
 
 from httmock import HTTMock
 from myria import MyriaSchema
@@ -70,7 +71,6 @@ class TestFluent(unittest.TestCase):
             self.assertTrue('FileScan' in text)
             self.assertTrue('TupleSource' in text)
             self.assertTrue(url in text)
-
             relation.execute()
             plan = state['query']
             text = json.dumps(plan['plan']['fragments'][0]['operators'][0])

@@ -58,6 +58,7 @@ class MyriaRelation(MyriaFluentQuery):
                                  else self._empty(self._schema))),
             self.connection)
 
+
     @staticmethod
     # pylint: disable=E0202
     def load(name, url, schema, data_format='CSV', connection=None,
@@ -80,6 +81,7 @@ class MyriaRelation(MyriaFluentQuery):
                 url, self._schema or kwargs.pop('schema'), data_format,
                 **kwargs)
             return self
+
 
     def to_dict(self):
         """ Download this relation as JSON """
