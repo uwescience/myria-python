@@ -39,6 +39,7 @@ class MyriaRelation(MyriaFluentQuery):
         self.qualified_name = self._get_qualified_name(self.components)
         self._schema = None
         self._metadata = None
+        self.load = self.instance_load
 
         # If the relation is already persisted, any schema parameter
         # must match the persisted version.
@@ -57,7 +58,15 @@ class MyriaRelation(MyriaFluentQuery):
                                  else self._empty(self._schema))),
             self.connection)
 
-    def load(self, url, data_format='CSV', **kwargs):
+    @staticmethod
+    def load(name, url, schema, data_format='CSV', connection=None,
+                    **kwargs):
+        relation = MyriaRelation(name, connection, schema)
+        return (relation
+                .load(url, data_format, **kwargs)
+                .execute(relation))
+
+    def instance_load(self, url, data_format='CSV', **kwargs):
         if self.parent is not None:
             raise MyriaError('Load must be first invocation in fluent query.')
         elif self._schema is None and 'schema' not in kwargs:
@@ -66,6 +75,7 @@ class MyriaRelation(MyriaFluentQuery):
             self.query = MyriaFluentQuery._load(
                 url, self._schema or kwargs.pop('schema'), data_format,
                 **kwargs)
+            return self
 
     def to_dict(self):
         """ Download this relation as JSON """
