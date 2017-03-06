@@ -1,7 +1,7 @@
 """ Higher-level types for interacting with Myria relations """
 
-from dateutil.parser import parse
 from itertools import izip
+from dateutil.parser import parse
 from myria import MyriaConnection, MyriaError
 from myria.schema import MyriaSchema
 from myria.fluent import MyriaFluentQuery
@@ -59,14 +59,18 @@ class MyriaRelation(MyriaFluentQuery):
             self.connection)
 
     @staticmethod
+    # pylint: disable=E0202
     def load(name, url, schema, data_format='CSV', connection=None,
              **kwargs):
+        """ Load data from a URL and save it as a new relation """
         relation = MyriaRelation(name, connection, schema)
         return (relation
                 .load(url, data_format, **kwargs)
                 .execute(relation))
 
     def instance_load(self, url, data_format='CSV', **kwargs):
+        """ Generate a query that loads data from the given
+            URL into the relation """
         if self.parent is not None:
             raise MyriaError('Load must be first invocation in fluent query.')
         elif self._schema is None and 'schema' not in kwargs:
