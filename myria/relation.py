@@ -17,7 +17,7 @@ class MyriaRelation(MyriaFluentQuery):
 
     DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
 
-    def __init__(self, relation, connection=None, schema=None):
+    def __init__(self, relation, connection=None, schema=None, **kwargs):
         """ Attach to an existing Myria relation, or create a new one
 
         relation: the name of the relation.  One of:
@@ -52,9 +52,20 @@ class MyriaRelation(MyriaFluentQuery):
 
         super(MyriaRelation, self).__init__(
             None,
-            (self._scan(self.components) if self.is_persisted
-             else self._empty(self._schema)),
+            kwargs.get('query', (self._scan(self.components)
+                                 if self.is_persisted
+                                 else self._empty(self._schema))),
             self.connection)
+
+    def load(self, url, data_format='CSV', **kwargs):
+        if self.parent is not None:
+            raise MyriaError('Load must be first invocation in fluent query.')
+        elif self._schema is None and 'schema' not in kwargs:
+            raise MyriaError('Relation does not have a scheme.')
+        else:
+            self.query = MyriaFluentQuery._load(
+                url, self._schema or kwargs.pop('schema'), data_format,
+                **kwargs)
 
     def to_dict(self):
         """ Download this relation as JSON """
