@@ -60,7 +60,7 @@ class MyriaRelation(MyriaFluentQuery):
 
     @staticmethod
     def load(name, url, schema, data_format='CSV', connection=None,
-                    **kwargs):
+             **kwargs):
         relation = MyriaRelation(name, connection, schema)
         return (relation
                 .load(url, data_format, **kwargs)
