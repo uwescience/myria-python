@@ -88,5 +88,11 @@ def create_mock(state=None):
             state[body['name']] = body
             return {'status_code': 200, 'content': '{}'}
 
+        elif url.path == '/query' and request.method == 'POST':
+            state['query'] = json.loads(request.body)
+            return {'status_code': 200,
+                    'headers': {'Location': ""},
+                    'content': {'queryId': 999}}
+
         return None
     return local_mock
