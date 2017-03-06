@@ -70,8 +70,10 @@ class MyriaRelation(MyriaFluentQuery):
                 .execute(relation))
 
     def instance_load(self, url, data_format='CSV', **kwargs):
+
         """ Generate a query that loads data from the given
             URL into the relation """
+
         if self.parent is not None:
             raise MyriaError('Load must be first invocation in fluent query.')
         elif self._schema is None and 'schema' not in kwargs:
@@ -81,7 +83,6 @@ class MyriaRelation(MyriaFluentQuery):
                 url, self._schema or kwargs.pop('schema'), data_format,
                 **kwargs)
             return self
-
 
     def to_dict(self):
         """ Download this relation as JSON """
