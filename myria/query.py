@@ -32,13 +32,15 @@ class MyriaQuery(object):
     @staticmethod
     def submit(query, language="MyriaL",
                connection=None,
-               timeout=60):
+               timeout=60,
+               wait_for_completion=True):
         """ Submit a query to Myria and return a new query instance """
         connection = connection or MyriaRelation.DefaultConnection
         return MyriaQuery(
             connection.execute_program(
                 query,
-                language=language)['queryId'],
+                language=language,
+                wait_for_completion=wait_for_completion)['queryId'],
             connection, timeout)
 
     @staticmethod
