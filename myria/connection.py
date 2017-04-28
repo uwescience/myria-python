@@ -304,7 +304,8 @@ class MyriaConnection(object):
 
         return self._make_request(POST, '/dataset', json.dumps(body))
 
-    def execute_program(self, program, language="MyriaL", server=None):
+    def execute_program(self, program, language="MyriaL", server=None,
+                        wait_for_completion=True):
         """Execute the program in the specified language on Myria, polling
         its status until the query is finished. Returns the query status
         struct.
@@ -330,7 +331,7 @@ class MyriaConnection(object):
             raise MyriaError(r)
 
         query_uri = r.json()['url']
-        while True:
+        while wait_for_completion:
             r = requests.get(query_uri)
             if r.status_code == 200:
                 return r.json()
@@ -339,6 +340,8 @@ class MyriaConnection(object):
                 sleep(0.1)
                 continue
             raise MyriaError(r)
+        else:
+            return {'queryId': r.json()['queryId']}
 
     def compile_program(self, program, language="MyriaL", profile=False):
         """Get a compiled plan for a given program.

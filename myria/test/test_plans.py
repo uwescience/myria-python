@@ -32,7 +32,7 @@ class TestPlans(unittest.TestCase):
         self.assertListEqual(workers, [worker for worker, _ in WORK])
 
     def test_scan(self):
-        scan_type = 'UNITTEST-SCAN'
+        scan_type = {'readerType': 'UNITTEST-SCAN'}
         scan_parameters = {'metadata': 'foo'}
         plan = myria.plans.get_parallel_import_plan(
             SCHEMA, WORK, QUALIFIED_NAME,
@@ -42,7 +42,8 @@ class TestPlans(unittest.TestCase):
         for fragment in plan['fragments']:
             scan_operator = fragment['operators'][0]
 
-            self.assertEquals(scan_operator['opType'], scan_type)
+            self.assertEquals(scan_operator['opType'], 'TupleSource')
+            self.assertEquals(scan_operator['reader'], scan_type)
             self.assertEquals(scan_operator['metadata'], 'foo')
 
     def test_insert(self):
