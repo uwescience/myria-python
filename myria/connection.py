@@ -320,6 +320,12 @@ class MyriaConnection(object):
             server: The MyriaX server on which to execute the program
                     (None for the server associated with the connection)
         """
+        raco = RacoMyriaConnection(
+            rest_url=self._url_start,
+            execution_url=self.execution_url)
+        return raco.execute_query(raco.compile_program(
+                program, language))
+
 
         body = {"query": program, "language": language}
         r = requests.post((server or self.execution_url) + '/execute',
