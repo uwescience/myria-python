@@ -1,2 +1,2 @@
-ipython[all]
+ipython[all] = 5.4
 pandas
