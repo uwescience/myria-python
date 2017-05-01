@@ -266,12 +266,13 @@ class MyriaConnection(object):
                 'relationName': relation_key['relationName']}
 
 
-
     def create_function(self, d):
+
         """Register a User Defined Function with Myria """
         return RacoMyriaConnection(
             rest_url=self._url_start,
-            execution_url=self.execution_url).create_function(d)
+            execution_url=self.execution_url).create_function(
+            d, overwrite_if_exists=overwrite_if_exists)
 
 
     def get_functions(self):
