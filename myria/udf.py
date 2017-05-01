@@ -61,11 +61,12 @@ class MyriaFunction(object):
         self.multivalued = multivalued
         self.language = language
 
-    def register(self):
+    def register(self, overwrite_if_exists=True):
         from myria import MyriaRelation
         connection = self.connection or MyriaRelation.DefaultConnection
         self.get_all(connection).append(self)
-        connection.create_function(self.to_dict())
+        connection.create_function(self.to_dict(),
+                                   overwrite_if_exists=overwrite_if_exists)
 
     def to_dict(self):
         return {'name': self.name,
