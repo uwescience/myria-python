@@ -322,8 +322,7 @@ class MyriaConnection(object):
             rest_url=self._url_start,
             execution_url=self.execution_url)
         return raco.execute_query(raco.compile_program(
-                program, language))
-
+                    program, language))
 
         body = {"query": program, "language": language}
         r = requests.post((server or self.execution_url) + '/execute',
