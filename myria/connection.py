@@ -267,13 +267,11 @@ class MyriaConnection(object):
 
 
     def create_function(self, d):
-
         """Register a User Defined Function with Myria """
         return RacoMyriaConnection(
             rest_url=self._url_start,
             execution_url=self.execution_url).create_function(
             d, overwrite_if_exists=overwrite_if_exists)
-
 
     def get_functions(self):
         """ List all the user defined functions in Myria """
@@ -336,10 +334,9 @@ class MyriaConnection(object):
                       (default: MyriaL).
             profile: True when the program should be profiled
         """
-        return RacoMyriaConnection(
-            rest_url=self._url_start,
-            execution_url=self.execution_url).compile_program(
-                program, language, **{'profile': profile})
+        return RacoMyriaConnection(rest_url=self._url_start,
+                                   execution_url=self.execution_url).compile_program(
+                                   program, language, **{'profile': profile})
 
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
