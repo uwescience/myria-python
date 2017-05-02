@@ -322,26 +322,7 @@ class MyriaConnection(object):
             rest_url=self._url_start,
             execution_url=self.execution_url)
         return raco.execute_query(raco.compile_program(
-                    program, language))
-
-        body = {"query": program, "language": language}
-        r = requests.post((server or self.execution_url) + '/execute',
-                          data=body)
-        if r.status_code != 201:
-            raise MyriaError(r)
-
-        query_uri = r.json()['url']
-        while wait_for_completion:
-            r = requests.get(query_uri)
-            if r.status_code == 200:
-                return r.json()
-            elif r.status_code == 202:
-                # Sleep 100 ms before re-checking the status
-                sleep(0.1)
-                continue
-            raise MyriaError(r)
-        else:
-            return {'queryId': r.json()['queryId']}
+            program, language))
 
     def compile_program(self, program, language="MyriaL", profile=False):
         """Get a compiled plan for a given program.
