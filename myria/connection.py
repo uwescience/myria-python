@@ -265,8 +265,7 @@ class MyriaConnection(object):
                 'programName': relation_key['programName'],
                 'relationName': relation_key['relationName']}
 
-
-    def create_function(self, d):
+    def create_function(self, d, overwrite_if_exists=True):
         """Register a User Defined Function with Myria """
         return RacoMyriaConnection(
             rest_url=self._url_start,
@@ -323,7 +322,7 @@ class MyriaConnection(object):
             rest_url=self._url_start,
             execution_url=self.execution_url)
         return raco.execute_query(raco.compile_program(
-                program, language))
+                                  program, language))
 
     def compile_program(self, program, language="MyriaL", profile=False):
         """Get a compiled plan for a given program.
@@ -334,9 +333,10 @@ class MyriaConnection(object):
                       (default: MyriaL).
             profile: True when the program should be profiled
         """
-        return RacoMyriaConnection(rest_url=self._url_start,
-                                   execution_url=self.execution_url).compile_program(
-                                   program, language, **{'profile': profile})
+        return RacoMyriaConnection(
+            rest_url=self._url_start,
+            execution_url=self.execution_url).compile_program(
+            program, language, **{'profile': profile})
 
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL

@@ -102,6 +102,9 @@ def local_mock(url, request):
     elif url.path == '/function':
         return {'status_code': 200, 'content': []}
 
+    elif url.path == '/function':
+        return {'status_code': 200, 'content': []}
+
     return None
 
 
