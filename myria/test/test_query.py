@@ -36,6 +36,10 @@ def get_query_dataset(query_id):
                  'columnTypes': ['INT_TYPE']},
              'numTuples': 1,
              'queryId': query_id,
+             'howDistributed': {
+                 'df': None,
+                 'workers': None
+             },
              'created': str(QUERY_TIME)}]
 
 
@@ -65,7 +69,8 @@ def local_mock(url, request):
                      '/relation-relation':
         body = {'relationKey': QUALIFIED_NAME,
                 'schema': SCHEMA,
-                'numTuples': len(TUPLES)}
+                'numTuples': len(TUPLES)
+                }
         return {'status_code': 200, 'content': body}
 
     elif url.path == '/dataset/user-public/program-adhoc' \
