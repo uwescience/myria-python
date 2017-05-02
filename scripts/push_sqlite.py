@@ -50,6 +50,7 @@ def typemap(dbt):
 
 sqlconn = sqlite3.connect(sys.argv[1])
 
+
 def tuplestream(tblname):
   c = sqlconn.cursor()
   for row in c.execute("SELECT * FROM '{0}'".format(tblname)):
@@ -67,8 +68,8 @@ for row in ct.execute(tbls):
   attrs = [(col[1], col[2]) for col in cc.execute("PRAGMA table_info(%s)" % row)]
   names, dbtypes = zip(*attrs)
   mtypes = [typemap(dbt) for dbt in dbtypes]
-  schema = { "columnNames" : names,
-           "columnTypes" : mtypes }
+  schema = {"columnNames": names,
+            "columnTypes": mtypes}
 
   print "uploading table {0} with schema {1}".format(tbl, schema)
 

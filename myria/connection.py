@@ -267,7 +267,6 @@ class MyriaConnection(object):
 
 
     def create_function(self, d):
-
         """Register a User Defined Function with Myria """
         return RacoMyriaConnection(
             rest_url=self._url_start,

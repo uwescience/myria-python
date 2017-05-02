@@ -44,7 +44,6 @@ UDF1_TYPE, UDF2_TYPE = LONG_TYPE, STRING_TYPE
 UDF1_ARITY, UDF2_ARITY = 1, 2
 
 
-
 class TestFluent(unittest.TestCase):
     def __init__(self, args):
         with HTTMock(create_mock()):

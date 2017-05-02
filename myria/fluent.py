@@ -328,3 +328,4 @@ class MyriaFluentQuery(object):
                               multivalued=multivalued)
             self.udfs.append([udf.name, len(udf.arguments), udf.typ])
             return udf
+

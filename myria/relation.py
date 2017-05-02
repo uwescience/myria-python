@@ -58,7 +58,6 @@ class MyriaRelation(MyriaFluentQuery):
                                  else self._empty(self._schema))),
             self.connection)
 
-
     @staticmethod
     # pylint: disable=E0202
     def load(name, url, schema, data_format='CSV', connection=None,
@@ -70,7 +69,6 @@ class MyriaRelation(MyriaFluentQuery):
                 .execute(relation))
 
     def instance_load(self, url, data_format='CSV', **kwargs):
-
         """ Generate a query that loads data from the given
             URL into the relation """
 
