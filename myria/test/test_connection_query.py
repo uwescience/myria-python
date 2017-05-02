@@ -1,6 +1,8 @@
 from httmock import urlmatch, HTTMock
 import unittest
 from myria import MyriaConnection
+from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
+    UDF1_TYPE, SCHEMA
 
 
 def query():
@@ -26,77 +28,45 @@ def query_status(query, query_id=17, status='SUCCESS'):
 query_counter = 0
 
 
-@urlmatch(netloc=r'localhost:12345')
-def local_mock(url, request):
-    global query_counter
-    if url.path == '/query' and request.method == 'POST':
-        body = query_status(query(), 17, 'ACCEPTED')
-        headers = {'Location': 'http://localhost:12345/query/query-17'}
-        query_counter = 2
-        return {'status_code': 202, 'content': body, 'headers': headers}
-    elif url.path == '/query/query-17':
-        if query_counter == 0:
-            status = 'SUCCESS'
-            status_code = 201
-        else:
-            status = 'ACCEPTED'
-            status_code = 202
-            query_counter -= 1
-        body = query_status(query(), 17, status)
-        headers = {'Location': 'http://localhost:12345/query/query-17'}
-        return {'status_code': status_code,
-                'content': body,
-                'headers': headers}
-    elif url.path == '/query/validate':
-        return request.body
-    elif url.path == '/query' and request.method == 'GET':
-        body = {'max': 17, 'min': 1,
-                'results': [query_status(query(), 17, 'ACCEPTED'),
-                            query_status(query(), 11, 'SUCCESS')]}
-        return {'status_code': 200, 'content': body}
-
-    return None
-
-
 class TestQuery(unittest.TestCase):
     def __init__(self, args):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             self.connection = MyriaConnection(hostname='localhost', port=12345)
         unittest.TestCase.__init__(self, args)
 
     def test_submit(self):
         q = query()
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             status = self.connection.submit_query(q)
             self.assertEquals(status, query_status(q, status='ACCEPTED'))
             self.assertEquals(query_counter, 1)
 
     def test_execute(self):
         q = query()
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             status = self.connection.execute_query(q)
             self.assertEquals(status, query_status(q))
 
     def test_compile_plan(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             myrial = "a = empty(i:int);\nstore(a, a);"
             json = self.connection.compile_program(myrial, language="MyriaL")
             self.assertEqual(json['rawQuery'], myrial)
 
     def test_validate(self):
         q = query()
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             validated = self.connection.validate_query(q)
             self.assertEquals(validated, q)
 
     def test_query_status(self):
         q = query()
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             status = self.connection.get_query_status(17)
             self.assertEquals(status, query_status(q))
 
     def x_test_queries(self):
-        with HTTMock(local_mock):
+        with HTTMock(create_mock()):
             result = self.connection.queries()
             self.assertEquals(result['max'], 17)
             self.assertEquals(result['min'], 1)
