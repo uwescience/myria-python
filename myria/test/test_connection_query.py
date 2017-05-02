@@ -3,7 +3,6 @@ import unittest
 from myria import MyriaConnection
 from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
     UDF1_TYPE, SCHEMA
-UDF1_NAME, UDF2_NAME = 'udf1', 'udf2'
 
 def query():
     """Simple empty query"""
@@ -55,9 +54,8 @@ def local_mock(url, request):
                 'results': [query_status(query(), 17, 'ACCEPTED'),
                             query_status(query(), 11, 'SUCCESS')]}
         return {'status_code': 200, 'content': body}
-    elif url.path == '/function' and request.method == 'GET':
-        body = [UDF1_NAME, UDF2_NAME]
-        return {'status_code': 200, 'content': body}
+    elif url.path == '/function':
+        return {'status_code': 200, 'content': []}
 
     return None
 

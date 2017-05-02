@@ -102,9 +102,6 @@ def local_mock(url, request):
     elif url.path == '/function':
         return {'status_code': 200, 'content': []}
 
-    elif url.path == '/function':
-        return {'status_code': 200, 'content': []}
-
     return None
 
 
@@ -193,13 +190,13 @@ class TestQuery(unittest.TestCase):
 
     def test_submit_program(self):
         with HTTMock(local_mock):
-            program = 'COMPLETE_IMMEDIATELY'
+            program = 'COMPLETE_IMMEDIATELY = empty(i:int);\nstore(COMPLETE_IMMEDIATELY, COMPLETE_IMMEDIATELY);'
             query = MyriaQuery.submit(program, connection=self.connection)
             self.assertEquals(query.status, STATE_SUCCESS)
 
     def test_submit_program_async(self):
         with HTTMock(local_mock):
-            program = 'RUN_FOREVER'
+            program = 'RUN_FOREVER = scan('+ FULL_NAME+ ');'
             query = MyriaQuery.submit(program, connection=self.connection,
                                       wait_for_completion=False)
             self.assertEquals(query.status, STATE_RUNNING)
