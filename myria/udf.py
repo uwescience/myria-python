@@ -135,4 +135,3 @@ class MyriaPythonFunction(MyriaFunction):
             d['name'],
             bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
-
