@@ -14,7 +14,7 @@ setup(
     setup_requires=["requests>=2.5.1"],
     install_requires=["pip >= 1.5.6", "pyOpenSSL >= 0.14", "ndg-httpsclient",
                       "pyasn1", "requests", "requests_toolbelt",
-                      "messytables", "unicodecsv", "raco >= 1.2.0",
+                      "messytables", "unicodecsv", "raco >= 1.3.5",
                       "python-dateutil"],
     entry_points={
         'console_scripts': [
