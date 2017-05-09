@@ -196,7 +196,7 @@ class TestQuery(unittest.TestCase):
 
     def test_submit_program(self):
         with HTTMock(local_mock):
-            program = 'COMPLETE_IMMEDIATELY = empty(i:int);\nstore(COMPLETE_IMMEDIATELY, COMPLETE_IMMEDIATELY);'
+            program = 'CI = empty(i:int);\nstore(CI, CI);'
             query = MyriaQuery.submit(program, connection=self.connection)
             self.assertEquals(query.status, STATE_SUCCESS)
 
