@@ -4,6 +4,7 @@ from myria import MyriaConnection
 from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
     UDF1_TYPE, SCHEMA
 
+
 def query():
     """Simple empty query"""
     return {'rawQuery': 'empty',
@@ -25,6 +26,7 @@ def query_status(query, query_id=17, status='SUCCESS'):
 
 
 query_counter = 0
+
 
 @urlmatch(netloc=r'localhost:12345')
 def local_mock(url, request):
@@ -58,6 +60,7 @@ def local_mock(url, request):
         return {'status_code': 200, 'content': []}
 
     return None
+
 
 class TestQuery(unittest.TestCase):
     def __init__(self, args):
