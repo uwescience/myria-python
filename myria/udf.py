@@ -90,7 +90,7 @@ class MyriaPostgresFunction(MyriaFunction):
             d['outputType'],
             bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
-    
+
 
 class MyriaPythonFunction(MyriaFunction):
     def __init__(self, body, output_type=STRING_TYPE, name=None,
