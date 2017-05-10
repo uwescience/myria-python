@@ -1,3 +1,7 @@
 ipython[all] <= 5.4
 pandas
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e1087492ff60bee61adae41b2dc2b35ea9caa38a

@@ -94,5 +94,6 @@ def create_mock(state=None):
                     'headers': {'Location': ""},
                     'content': {'queryId': 999}}
 
+
         return None
     return local_mock

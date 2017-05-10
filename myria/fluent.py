@@ -98,7 +98,6 @@ class MyriaFluentQuery(object):
                     MyriaCatalog(self.connection).get_scheme(
                         RelationKey(*components)))
 
-
     @staticmethod
     def _load(url, scheme, data_format='CSV', **kwargs):
         return FileScan(url, data_format,
@@ -320,7 +319,6 @@ class MyriaFluentQuery(object):
 
     def _convert(self, source_or_ast_or_callable,
                  scheme=None, out_type=None, multivalued=False):
-
 
         scheme = scheme or [self.query.scheme()]
         try:
