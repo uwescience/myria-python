@@ -184,7 +184,7 @@ class MyriaConnection(object):
     def _wrap_post(self, selector, data=None, params=None, status=None,
                    accepted=None):
         if status is None:
-            status = [201, 202]
+            status = [200, 201, 202]
             if accepted is None:
                 accepted = [202]
         else:
@@ -304,17 +304,18 @@ class MyriaConnection(object):
 
         return self._make_request(POST, '/dataset', json.dumps(body))
 
-    def execute_program(self, program, language="MyriaL", server=None):
+    def execute_program(self, program, language="MyriaL", server=None,
+                        wait_for_completion=True):
         """Execute the program in the specified language on Myria, polling
         its status until the query is finished. Returns the query status
         struct.
 
         Args:
-            program: a Myria program as a string.
-            language: the language in which the program is written
-                      (default: MyriaL).
-            server: The MyriaX server on which to execute the program
-                    (None for the server associated with the connection)
+            :param program: a Myria program as a string.
+            :param language: the language in which the program is written
+                             (default: MyriaL).
+            :param wait_for_completion: wait for completion before returning
+            :param server: override for connection server URL (deprecated)
         """
 
         body = {"query": program, "language": language}
@@ -324,7 +325,7 @@ class MyriaConnection(object):
             raise MyriaError(r)
 
         query_uri = r.json()['url']
-        while True:
+        while wait_for_completion:
             r = requests.get(query_uri)
             if r.status_code == 200:
                 return r.json()
@@ -333,6 +334,8 @@ class MyriaConnection(object):
                 sleep(0.1)
                 continue
             raise MyriaError(r)
+        else:
+            return {'queryId': r.json()['queryId']}
 
     def compile_program(self, program, language="MyriaL", profile=False):
         """Get a compiled plan for a given program.
