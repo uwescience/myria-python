@@ -70,6 +70,7 @@ for row in ct.execute(tbls):
   schema = { "columnNames" : names,
            "columnTypes" : mtypes }
 
+
   print "uploading table {0} with schema {1}".format(tbl, schema)
 
   f = filelikeIterator(tuplestream(tbl))

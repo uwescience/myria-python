@@ -1,6 +1,8 @@
 from httmock import urlmatch, HTTMock
 import unittest
 from myria import MyriaConnection
+from myria.test.mock import create_mock, FULL_NAME, FULL_NAME2, UDF1_ARITY, \
+    UDF1_TYPE, SCHEMA
 
 
 def query():
@@ -54,6 +56,8 @@ def local_mock(url, request):
                 'results': [query_status(query(), 17, 'ACCEPTED'),
                             query_status(query(), 11, 'SUCCESS')]}
         return {'status_code': 200, 'content': body}
+    elif url.path == '/function':
+        return {'status_code': 200, 'content': []}
 
     return None
 
@@ -76,6 +80,12 @@ class TestQuery(unittest.TestCase):
         with HTTMock(local_mock):
             status = self.connection.execute_query(q)
             self.assertEquals(status, query_status(q))
+
+    def test_compile_plan(self):
+        with HTTMock(local_mock):
+            myrial = "a = empty(i:int);\nstore(a, a);"
+            json = self.connection.compile_program(myrial, language="MyriaL")
+            self.assertEqual(json['rawQuery'], myrial)
 
     def test_validate(self):
         q = query()

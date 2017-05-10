@@ -4,11 +4,12 @@ import json
 import csv
 from time import sleep
 import logging
-import urllib
 from urlparse import urlparse, ParseResult
 
 import requests
 
+from raco.backends.myria.connection \
+    import MyriaConnection as RacoMyriaConnection
 from .errors import MyriaError
 
 __all__ = ['MyriaConnection']
@@ -34,7 +35,8 @@ class MyriaConnection(object):
 
     @staticmethod
     def _parse_deployment(deployment):
-        "Extract the REST server hostname and port from a deployment.cfg file"
+        """Extract the REST server hostname and port from a deployment.cfg
+           file"""
         if deployment is None:
             return None
         config = ConfigParser.RawConfigParser(allow_no_value=True)
@@ -42,7 +44,7 @@ class MyriaConnection(object):
         master = config.get('master', '0')
         hostname = master[:master.index(':')]
         port = int(config.get('deployment', 'rest_port'))
-        return (hostname, port)
+        return hostname, port
 
     def __init__(self,
                  deployment=None,
@@ -149,7 +151,7 @@ class MyriaConnection(object):
                 if accept == JSON:
                     try:
                         return r.json()
-                    except ValueError as e:
+                    except ValueError:
                         raise MyriaError(
                             'Error %d: %s' % (r.status_code, r.text))
                 else:
@@ -263,6 +265,21 @@ class MyriaConnection(object):
                 'programName': relation_key['programName'],
                 'relationName': relation_key['relationName']}
 
+    def create_function(self, d, overwrite_if_exists=True):
+        """Register a User Defined Function with Myria """
+        return RacoMyriaConnection(
+            rest_url=self._url_start,
+            execution_url=self.execution_url).create_function(
+            d, overwrite_if_exists=overwrite_if_exists)
+
+    def get_functions(self):
+        """ List all the user defined functions in Myria """
+        return self._wrap_get('/function')
+
+    def get_function(self, name):
+        """ Get user defined functions metadata """
+        return self._wrap_get('/function/{}'.format(name))
+
     def create_empty(self, relation_key, schema):
         return self.upload_source(relation_key, schema, {'dataType': 'Empty'})
 
@@ -295,31 +312,17 @@ class MyriaConnection(object):
         struct.
 
         Args:
-            :param program: a Myria program as a string.
-            :param language: the language in which the program is written
-                             (default: MyriaL).
-            :param wait_for_completion: wait for completion before returning
-            :param server: override for connection server URL (deprecated)
+            program: a Myria program as a string.
+            language: the language in which the program is written
+                      (default: MyriaL).
+            server: The MyriaX server on which to execute the program
+                    (None for the server associated with the connection)
         """
-
-        body = {"query": program, "language": language}
-        r = requests.post((server or self.execution_url) + '/execute',
-                          data=body)
-        if r.status_code != 201:
-            raise MyriaError(r)
-
-        query_uri = r.json()['url']
-        while wait_for_completion:
-            r = requests.get(query_uri)
-            if r.status_code == 200:
-                return r.json()
-            elif r.status_code == 202:
-                # Sleep 100 ms before re-checking the status
-                sleep(0.1)
-                continue
-            raise MyriaError(r)
-        else:
-            return {'queryId': r.json()['queryId']}
+        raco = RacoMyriaConnection(
+            rest_url=self._url_start,
+            execution_url=self.execution_url)
+        return raco.execute_query(raco.compile_program(
+            program, language))
 
     def compile_program(self, program, language="MyriaL", profile=False):
         """Get a compiled plan for a given program.
@@ -328,13 +331,12 @@ class MyriaConnection(object):
             program: a Myria program as a string.
             language: the language in which the program is written
                       (default: MyriaL).
+            profile: True when the program should be profiled
         """
-        body = {'query': program, 'language': language, 'profile': profile}
-        response = requests.post(self.execution_url + '/compile', data=body)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise MyriaError(response)
+        return RacoMyriaConnection(
+            rest_url=self._url_start,
+            execution_url=self.execution_url).compile_program(
+                program, language, **{'profile': profile})
 
     def submit_query(self, query):
         """Submit the query to Myria, and return the status including the URL
