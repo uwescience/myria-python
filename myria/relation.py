@@ -1,9 +1,10 @@
 """ Higher-level types for interacting with Myria relations """
 
-from dateutil.parser import parse
 from itertools import izip
+from dateutil.parser import parse
 from myria import MyriaConnection, MyriaError
 from myria.schema import MyriaSchema
+from myria.fluent import MyriaFluentQuery
 
 try:
     from pandas.core.frame import DataFrame
@@ -11,12 +12,12 @@ except ImportError:
     DataFrame = None
 
 
-class MyriaRelation(object):
+class MyriaRelation(MyriaFluentQuery):
     """ Represents a relation in the Myria system """
 
     DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
 
-    def __init__(self, relation, connection=None, schema=None):
+    def __init__(self, relation, connection=None, schema=None, **kwargs):
         """ Attach to an existing Myria relation, or create a new one
 
         relation: the name of the relation.  One of:
@@ -30,21 +31,55 @@ class MyriaRelation(object):
         connection: attach to a specific Myria API endpoint
         schema: for a relation that does not yet exist, specify its schema
         """
-        self.name = relation if isinstance(relation, basestring) \
+        name = relation if isinstance(relation, basestring) \
             else self._get_name(relation)
-        self.components = self._get_name_components(self.name)
+        self.components = self._get_name_components(name)
+        self.name = ':'.join(self.components)  # Qualify name
         self.connection = connection or self.DefaultConnection
         self.qualified_name = self._get_qualified_name(self.components)
         self._schema = None
         self._metadata = None
+        self.load = self.instance_load
 
         # If the relation is already persisted, any schema parameter
         # must match the persisted version.
         if schema is not None and self.is_persisted and self.schema != schema:
             raise ValueError('Stored relation schema does not match '
                              'that specified as schema parameter.')
+        elif schema is None and not self.is_persisted:
+            raise ValueError('No schema specified for new relation.')
         elif schema is not None:
             self._schema = schema
+
+        super(MyriaRelation, self).__init__(
+            None,
+            kwargs.get('query', (self._scan(self.components)
+                                 if self.is_persisted
+                                 else self._empty(self._schema))),
+            self.connection)
+
+    @staticmethod
+    # pylint: disable=E0202
+    def load(name, url, schema, data_format='CSV', connection=None,
+             **kwargs):
+        """ Load data from a URL and save it as a new relation """
+        relation = MyriaRelation(name, connection, schema)
+        return (relation
+                .load(url, data_format, **kwargs)
+                .execute(relation))
+
+    def instance_load(self, url, data_format='CSV', **kwargs):
+        """ Generate a query that loads data from the given
+            URL into the relation """
+        if self.parent is not None:
+            raise MyriaError('Load must be first invocation in fluent query.')
+        elif self._schema is None and 'schema' not in kwargs:
+            raise MyriaError('Relation does not have a scheme.')
+        else:
+            self.query = MyriaFluentQuery._load(
+                url, self._schema or kwargs.pop('schema'), data_format,
+                **kwargs)
+            return self
 
     def to_dict(self):
         """ Download this relation as JSON """
@@ -98,6 +133,9 @@ class MyriaRelation(object):
             return bool(self.metadata)
         except MyriaError:
             return False
+
+    def __str__(self):
+        return self.name
 
     @staticmethod
     def _get_name(qualified_name):

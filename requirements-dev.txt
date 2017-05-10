@@ -2,5 +2,6 @@ coverage
 flake8 >= 2.0
 httmock >= 1.2.1
 nose
-pylint
+pylint <= 1.6.4
 scripttest
+python-dateutil
