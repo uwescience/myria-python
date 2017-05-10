@@ -43,8 +43,6 @@ class MyriaFunction(object):
                 MyriaPostgresFunction.from_dict(udf, connection)
                 for udf in imap(connection.get_function,
                                 connection.get_functions())]
-
-
         return cls._cache[connection.execution_url]
 
     @classmethod
@@ -83,7 +81,6 @@ class MyriaPostgresFunction(MyriaFunction):
             name, source, output_type, FunctionTypes.POSTGRES,
             multivalued, connection)
 
-
     @staticmethod
     def from_dict(d, connection=None):
         from myria import MyriaRelation
@@ -93,7 +90,6 @@ class MyriaPostgresFunction(MyriaFunction):
             d['outputType'],
             bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
-
 
 class MyriaPythonFunction(MyriaFunction):
     def __init__(self, body, output_type=STRING_TYPE, name=None,
@@ -136,5 +132,3 @@ class MyriaPythonFunction(MyriaFunction):
             d['name'],
             bool(d.get('isMultiValued', False)),
             connection=connection or MyriaRelation.DefaultConnection)
-
-

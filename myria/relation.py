@@ -14,7 +14,6 @@ except ImportError:
 
 class MyriaRelation(MyriaFluentQuery):
     """ Represents a relation in the Myria system """
-
     DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
 
     def __init__(self, relation, connection=None, schema=None, **kwargs):
@@ -57,7 +56,6 @@ class MyriaRelation(MyriaFluentQuery):
                                  if self.is_persisted
                                  else self._empty(self._schema))),
             self.connection)
-
 
     @staticmethod
     # pylint: disable=E0202

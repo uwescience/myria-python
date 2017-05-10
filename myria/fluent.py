@@ -91,7 +91,6 @@ class MyriaFluentQuery(object):
         self.udfs = [f.to_dict()
                      for f in MyriaFunction.get_all(self.connection)]
 
-
     def _scan(self, components):
         """ Scan a relation with the given name components """
         return Scan(RelationKey(*components),
