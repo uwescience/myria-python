@@ -265,11 +265,12 @@ class MyriaConnection(object):
                 'programName': relation_key['programName'],
                 'relationName': relation_key['relationName']}
 
-    def create_function(self, d):
+    def create_function(self, d, overwrite_if_exists=True):
         """Register a User Defined Function with Myria """
         return RacoMyriaConnection(
             rest_url=self._url_start,
-            execution_url=self.execution_url).create_function(d)
+            execution_url = self.execution_url).create_function(
+            d, overwrite_if_exists=overwrite_if_exists)
 
     def get_functions(self):
         """ List all the user defined functions in Myria """
@@ -309,37 +310,21 @@ class MyriaConnection(object):
         """Execute the program in the specified language on Myria, polling
         its status until the query is finished. Returns the query status
         struct.
-
         Args:
-            :param program: a Myria program as a string.
-            :param language: the language in which the program is written
-                             (default: MyriaL).
-            :param wait_for_completion: wait for completion before returning
-            :param server: override for connection server URL (deprecated)
+            program: a Myria program as a string.
+            language: the language in which the program is written
+                      (default: MyriaL).
+            server: The MyriaX server on which to execute the program
+                    (None for the server associated with the connection)
         """
-
-        body = {"query": program, "language": language}
-        r = requests.post((server or self.execution_url) + '/execute',
-                          data=body)
-        if r.status_code != 201:
-            raise MyriaError(r)
-
-        query_uri = r.json()['url']
-        while wait_for_completion:
-            r = requests.get(query_uri)
-            if r.status_code == 200:
-                return r.json()
-            elif r.status_code == 202:
-                # Sleep 100 ms before re-checking the status
-                sleep(0.1)
-                continue
-            raise MyriaError(r)
-        else:
-            return {'queryId': r.json()['queryId']}
+        raco = RacoMyriaConnection(
+            rest_url=self._url_start,
+            execution_url=self.execution_url)
+        return raco.execute_query(raco.compile_program(
+            program, language))
 
     def compile_program(self, program, language="MyriaL", profile=False):
         """Get a compiled plan for a given program.
-
         Args:
             program: a Myria program as a string.
             language: the language in which the program is written
