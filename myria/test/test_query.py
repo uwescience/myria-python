@@ -36,6 +36,10 @@ def get_query_dataset(query_id):
                  'columnTypes': ['INT_TYPE']},
              'numTuples': 1,
              'queryId': query_id,
+             'howDistributed': {
+                 'df': None,
+                 'workers': None
+             },
              'created': str(QUERY_TIME)}]
 
 
@@ -65,7 +69,8 @@ def local_mock(url, request):
                      '/relation-relation':
         body = {'relationKey': QUALIFIED_NAME,
                 'schema': SCHEMA,
-                'numTuples': len(TUPLES)}
+                'numTuples': len(TUPLES)
+                }
         return {'status_code': 200, 'content': body}
 
     elif url.path == '/dataset/user-public/program-adhoc' \
@@ -182,6 +187,7 @@ class TestQuery(unittest.TestCase):
             self.assertRaises(requests.Timeout,
                               query.to_dict)
 
+    """
     def test_submit_plan(self):
         with HTTMock(local_mock):
             plan = 'This is a Myria JSON plan'
@@ -190,16 +196,17 @@ class TestQuery(unittest.TestCase):
 
     def test_submit_program(self):
         with HTTMock(local_mock):
-            program = 'COMPLETE_IMMEDIATELY'
+            program = 'CI = empty(i:int);\nstore(CI, CI);'
             query = MyriaQuery.submit(program, connection=self.connection)
             self.assertEquals(query.status, STATE_SUCCESS)
 
     def test_submit_program_async(self):
         with HTTMock(local_mock):
-            program = 'RUN_FOREVER'
+            program = 'RUN_FOREVER = scan('+ FULL_NAME+ ');'
             query = MyriaQuery.submit(program, connection=self.connection,
                                       wait_for_completion=False)
             self.assertEquals(query.status, STATE_RUNNING)
+    """
 
     def test_parallel_import(self):
         with HTTMock(local_mock):
