@@ -69,7 +69,8 @@ def local_mock(url, request):
                      '/relation-relation':
         body = {'relationKey': QUALIFIED_NAME,
                 'schema': SCHEMA,
-                'numTuples': len(TUPLES)
+                'numTuples': len(TUPLES),
+                'howDistributed': {'df': None, 'workers': None}
                 }
         return {'status_code': 200, 'content': body}
 
@@ -80,9 +81,14 @@ def local_mock(url, request):
 
     # Query submission
     elif url.path == '/query':
-        return {'status_code': 201,
-                'content': '',
-                'headers': [('Location', '/query-running-uri')]}
+        if 'RUN_FOREVER' in request.body:
+            return {'status_code': 202,
+                    'content': '',
+                    'headers': [('Location', '/query-running-uri')]}
+        else:
+            return {'status_code': 202,
+                    'content': '',
+                    'headers': [('Location', '/query-completed-uri')]}
 
     elif url.path == '/query-running-uri':
         body = json.dumps({'queryId': RUNNING_QUERY_ID})
@@ -187,22 +193,24 @@ class TestQuery(unittest.TestCase):
             self.assertRaises(requests.Timeout,
                               query.to_dict)
 
-    """
     def test_submit_plan(self):
         with HTTMock(local_mock):
             plan = 'This is a Myria JSON plan'
             query = MyriaQuery.submit_plan(plan, connection=self.connection)
-            self.assertEquals(query.status, STATE_RUNNING)
+            self.assertEquals(query.status, 'Unittest-Success')
 
     def test_submit_program(self):
         with HTTMock(local_mock):
-            program = 'CI = empty(i:int);\nstore(CI, CI);'
+            program = 'COMPLETE_IMMEDIATELY = empty(i:int);\n' \
+                      'store(COMPLETE_IMMEDIATELY, COMPLETE_IMMEDIATELY);'
             query = MyriaQuery.submit(program, connection=self.connection)
             self.assertEquals(query.status, STATE_SUCCESS)
 
+    """
     def test_submit_program_async(self):
         with HTTMock(local_mock):
-            program = 'RUN_FOREVER = scan('+ FULL_NAME+ ');'
+            program = '''RUN_FOREVER = scan({});\n
+                         store(RUN_FOREVER, RUN_FOREVER);'''.format(FULL_NAME)
             query = MyriaQuery.submit(program, connection=self.connection,
                                       wait_for_completion=False)
             self.assertEquals(query.status, STATE_RUNNING)
@@ -218,4 +226,4 @@ class TestQuery(unittest.TestCase):
             work = [('http://input-uri-0', 0), ('http://input-uri-1', 1)]
 
             query = MyriaQuery.parallel_import(relation, work)
-            self.assertEquals(query.status, STATE_RUNNING)
+            self.assertEquals(query.status, 'Unittest-Success')
