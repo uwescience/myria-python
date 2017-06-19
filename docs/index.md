@@ -180,7 +180,7 @@ print query.status
 
 ## Using Myria with IPython
 
-Myria exposes convenience functionality when running within the Jupyter/IPython environment.  See [our sample IPython notebook](https://github.com/uwescience/myria-python/blob/master/ipnb%20examples/myria%20examples.ipynb) for a live demo.
+Myria exposes convenience functionality when running within the Jupyter/IPython environment.  See [our sample IPython notebook](https://github.com/uwescience/myria-python/blob/master/ipnb%20examples/myria.ipynb) for a live demo.
 
 #### 1. Load the Extension
 
