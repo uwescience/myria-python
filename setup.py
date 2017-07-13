@@ -11,10 +11,11 @@ setup(
     url='https://github.com/uwescience/myria',
     description='Python interface for Myria.',
     long_description=open('README.md').read(),
-    setup_requires=["requests>=2.5.1"],
+    # last known good version before buggy dependency refactoring
+    setup_requires=["requests == 2.15.1"],
     # see https://stackoverflow.com/questions/18578439
     install_requires=["pip >= 1.5.6", "pyOpenSSL >= 0.14", "ndg-httpsclient",
-                      "pyasn1", "requests", "requests_toolbelt",
+                      "pyasn1", "requests == 2.15.1", "requests_toolbelt",
                       "messytables", "unicodecsv", "raco >= 1.3.2",
                       "python-dateutil"],
     entry_points={
