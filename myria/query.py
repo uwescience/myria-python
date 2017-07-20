@@ -114,7 +114,8 @@ class MyriaQuery(object):
     def to_dict(self):
         """ Download the JSON results of the query """
         self.wait_for_completion()
-        return self.connection.download_dataset(self.qualified_name)
+        return self.connection.download_dataset(self.qualified_name) \
+            if self.qualified_name else None
 
     def to_dataframe(self, index=None):
         """ Convert the query result to a Pandas DataFrame """
@@ -122,7 +123,9 @@ class MyriaQuery(object):
             raise ImportError('Must execute `pip install pandas` to generate '
                               'Pandas DataFrames')
         else:
-            return DataFrame.from_records(self.to_dict(), index=index)
+            values = self.to_dict()
+            return DataFrame.from_records(values, index=index) \
+                if values else None
 
     def _repr_html_(self):
         """ Generate a representation of this query as HTML """
