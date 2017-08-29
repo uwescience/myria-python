@@ -326,6 +326,8 @@ class TestFluent(unittest.TestCase):
     def test_extension_method(self):
         server_state = {}
         with HTTMock(create_mock(server_state)):
+            # Prevent ambient UDF registration
+            MyriaRelation.DefaultConnection = None
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
 
             @myria_function(name='my_udf', output_type=BOOLEAN_TYPE)
@@ -354,6 +356,8 @@ class TestFluent(unittest.TestCase):
     def test_multivalued_extension_method(self):
         server_state = {}
         with HTTMock(create_mock(server_state)):
+            # Prevent ambient UDF registration
+            MyriaRelation.DefaultConnection = None
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
 
             @myria_function(name='my_udf', output_type=BOOLEAN_TYPE,
