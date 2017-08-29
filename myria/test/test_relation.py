@@ -59,6 +59,7 @@ class TestRelation(unittest.TestCase):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
             self.assertEquals(relation.connection, self.connection)
 
+            MyriaRelation.DefaultConnection = self.connection
             relation = MyriaRelation(FULL_NAME)
             self.assertEquals(relation.connection,
                               MyriaRelation.DefaultConnection)
