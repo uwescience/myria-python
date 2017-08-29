@@ -15,11 +15,13 @@ def myria_function(name=None, output_type=STRING_TYPE, multivalued=False,
                    connection=None):
     def decorator(f):
         from myria import MyriaFluentQuery
+        from myria import MyriaRelation
+        udf_connection = connection or MyriaRelation.DefaultConnection
         udf_name = name or f.__name__
 
-        if connection:
-            MyriaPythonFunction(f, output_type, name,
-                                multivalued, connection).register()
+        if udf_connection:
+            MyriaPythonFunction(f, output_type, udf_name,
+                                multivalued, udf_connection).register()
 
         setattr(
             MyriaFluentQuery,
@@ -36,7 +38,9 @@ class MyriaFunction(object):
     _cache = {}
 
     @classmethod
-    def get_all(cls, connection):
+    def get_all(cls, connection=None):
+        from myria import MyriaRelation
+        connection = connection or MyriaRelation.DefaultConnection
         if connection.execution_url not in cls._cache:
             cls._cache[connection.execution_url] = [
                 MyriaPythonFunction.from_dict(udf, connection)
@@ -48,7 +52,9 @@ class MyriaFunction(object):
         return cls._cache[connection.execution_url]
 
     @classmethod
-    def get(cls, name, connection):
+    def get(cls, name, connection=None):
+        from myria import MyriaRelation
+        connection = connection or MyriaRelation.DefaultConnection
         return next((f for f in cls.get_all(connection) if f.name == name),
                     None)
 
