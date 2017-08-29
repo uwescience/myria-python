@@ -12,10 +12,21 @@ except ImportError:
     DataFrame = None
 
 
+class _MetaMyriaRelation(type):
+    def _get_default_connection(cls):
+        return MyriaConnection.DefaultConnection
+
+    def _set_default_connection(cls, connection):
+        MyriaConnection.DefaultConnection = connection
+
+    DefaultConnection = property(_get_default_connection,
+                                 _set_default_connection)
+
+
 class MyriaRelation(MyriaFluentQuery):
     """ Represents a relation in the Myria system """
 
-    DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
+    __metaclass__ = _MetaMyriaRelation
 
     def __init__(self, relation, connection=None, schema=None, **kwargs):
         """ Attach to an existing Myria relation, or create a new one
@@ -35,7 +46,7 @@ class MyriaRelation(MyriaFluentQuery):
             else self._get_name(relation)
         self.components = self._get_name_components(name)
         self.name = ':'.join(self.components)  # Qualify name
-        self.connection = connection or self.DefaultConnection
+        self.connection = connection or MyriaRelation.DefaultConnection
         self.qualified_name = self._get_qualified_name(self.components)
         self._schema = None
         self._metadata = None

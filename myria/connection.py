@@ -28,6 +28,9 @@ logging.basicConfig(level=logging.WARN)
 class MyriaConnection(object):
     """Contains a connection the Myria REST server."""
 
+    # Set after class definition; see EOF
+    DefaultConnection = None
+
     _DEFAULT_HEADERS = {
         'Accept': JSON,
         'Content-Type': JSON
@@ -516,3 +519,5 @@ class MyriaConnection(object):
             raise MyriaError('Error %d: %s'
                              % (r.status_code, r.text))
         return r.json()
+
+MyriaConnection.DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
