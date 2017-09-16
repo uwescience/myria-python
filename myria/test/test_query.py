@@ -76,8 +76,8 @@ def local_mock(url, request):
 
     elif url.path == '/dataset/user-public/program-adhoc' \
                      '/relation-relation/data':
-        limit = request.original.params['limit']
-        body = str(TUPLES[:int(limit if limit != '' else len(TUPLES))])
+        limit = request.original.params.get('limit', None)
+        body = str(TUPLES[:int(limit if limit else len(TUPLES))])
         return {'status_code': 200, 'content': body}
 
     # Query submission
@@ -188,7 +188,7 @@ class TestQuery(unittest.TestCase):
             query = MyriaQuery(COMPLETED_QUERY_ID, connection=self.connection)
             self.assertEqual(query.to_dict(), TUPLES)
 
-            for i in xrange(len(TUPLES) + 1):
+            for i in xrange(1, len(TUPLES) + 1):
                 self.assertEqual(query.to_dict(limit=i), TUPLES[:i])
 
             query = MyriaQuery(RUNNING_QUERY_ID,

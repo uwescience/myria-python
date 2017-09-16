@@ -34,7 +34,7 @@ def local_mock(url, request):
 
     # Relation download
     if url.path == get_uri(RELATION_NAME) + '/data':
-        limit = request.original.params['limit']
+        limit = request.original.params.get('limit', None)
         body = str(TUPLES[:int(limit) if limit else len(TUPLES)])
         return {'status_code': 200, 'content': body}
 

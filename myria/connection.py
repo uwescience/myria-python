@@ -241,13 +241,14 @@ class MyriaConnection(object):
 
     def download_dataset(self, relation_key, limit=None):
         """Download the data in the dataset as json"""
+        parameters = {'format': 'json'}
+        if limit is not None:
+            parameters['limit'] = limit
         return self._wrap_get('/dataset/user-{}/program-{}/relation-{}/data'
                               .format(relation_key['userName'],
                                       relation_key['programName'],
                                       relation_key['relationName']),
-                              params={'format': 'json',
-                                      'limit': limit if limit is not None
-                                      else ''})
+                              params=parameters)
 
     def delete_dataset(self, relation_key):
         """Delete a relation"""
