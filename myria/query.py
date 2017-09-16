@@ -33,14 +33,18 @@ class MyriaQuery(object):
     @staticmethod
     def submit(query, language="MyriaL",
                connection=None,
-               timeout=60, profile=False):
+               timeout=60,
+               wait_for_completion=True,
+               profile=False):
         """ Submit a query to Myria and return a new query instance """
         connection = connection or MyriaRelation.DefaultConnection
         return MyriaQuery(
             connection.execute_program(
                 query,
-                language=language)['queryId'],
-            connection, timeout, profile)
+                language=language,
+                wait_for_completion=wait_for_completion,
+                profile=profile)['queryId'],
+            connection, timeout)
 
     @staticmethod
     def submit_plan(plan, connection=None,
@@ -62,6 +66,9 @@ class MyriaQuery(object):
               file, http, hdfs) and any combination may be assigned to workers.
               For local file URIs (file://foo/bar), the file is assumed to
               be local (or locally accessible).
+        scan_type: Reader parameters, e.g., {'readerType': 'CSV', "skip": 1}.
+                Schema is inserted into this.
+        scan_parameters: Additional options to the TupleSource operator.
         """
         return MyriaQuery.submit_plan(
             myria.plans.get_parallel_import_plan(
@@ -102,10 +109,16 @@ class MyriaQuery(object):
                 self.query_id)['status']
         return self._status
 
+    def kill(self):
+        """ Kill this query """
+        self.connection.kill_query(self.query_id)
+        self._status = None
+
     def to_dict(self):
         """ Download the JSON results of the query """
         self.wait_for_completion()
-        return self.connection.download_dataset(self.qualified_name)
+        return self.connection.download_dataset(self.qualified_name) \
+            if self.qualified_name else None
 
     def to_dataframe(self, index=None):
         """ Convert the query result to a Pandas DataFrame """
@@ -113,7 +126,9 @@ class MyriaQuery(object):
             raise ImportError('Must execute `pip install pandas` to generate '
                               'Pandas DataFrames')
         else:
-            return DataFrame.from_records(self.to_dict(), index=index)
+            values = self.to_dict()
+            return DataFrame.from_records(values, index=index) \
+                if values else None
 
     def _repr_html_(self):
         """ Generate a representation of this query as HTML """
@@ -129,6 +144,7 @@ class MyriaQuery(object):
                 raise requests.Timeout()
             time.sleep(1)
         self._on_completed()
+        return self
 
     def _on_completed(self):
         """ Load query metadata after query completion """
@@ -138,6 +154,3 @@ class MyriaQuery(object):
             self._qualified_name = dataset[0]['relationKey']
             self._name = MyriaRelation._get_name(self._qualified_name)
             self._components = MyriaRelation._get_name_components(self._name)
-        else:
-            raise AttributeError('Unable to load query metadata '
-                                 '(query status={})'.format(self.status))

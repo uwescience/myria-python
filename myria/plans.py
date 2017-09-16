@@ -2,8 +2,7 @@
 
 from functools import partial
 
-
-DEFAULT_SCAN_TYPE = 'FileScan'
+DEFAULT_SCAN_TYPE = {'readerType': 'CSV'}
 DEFAULT_INSERT_TYPE = 'DbInsert'
 
 
@@ -40,11 +39,13 @@ def _get_parallel_import_fragment(taskid, schema, relation,
     worker_id = assignment[0]
     datasource = assignment[1]
 
+    scan_type = scan_type or DEFAULT_SCAN_TYPE
+    scan_type.update({'schema': schema.to_dict()})
     scan = {
         'opId': __increment(taskid),
-        'opType': scan_type or DEFAULT_SCAN_TYPE,
+        'opType': 'TupleSource',
 
-        'schema': schema.to_dict(),
+        'reader': scan_type,
         'source': datasource
     }
     scan.update(scan_parameters or {})
