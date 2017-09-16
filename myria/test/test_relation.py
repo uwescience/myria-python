@@ -34,7 +34,8 @@ def local_mock(url, request):
 
     # Relation download
     if url.path == get_uri(RELATION_NAME) + '/data':
-        body = str(TUPLES)
+        limit = request.original.params.get('limit', None)
+        body = str(TUPLES[:int(limit) if limit else len(TUPLES)])
         return {'status_code': 200, 'content': body}
 
     # Relation not found in database
@@ -142,6 +143,9 @@ class TestRelation(unittest.TestCase):
             relation = MyriaRelation(FULL_NAME, connection=self.connection)
 
             self.assertListEqual(relation.to_dict(), TUPLES)
+
+            for i in xrange(1, len(TUPLES) + 1):
+                self.assertListEqual(relation.to_dict(limit=i), TUPLES[:i])
 
     def test_unpersisted_dict_download(self):
         with HTTMock(local_mock):

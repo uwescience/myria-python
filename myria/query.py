@@ -111,27 +111,33 @@ class MyriaQuery(object):
         self.connection.kill_query(self.query_id)
         self._status = None
 
-    def to_dict(self):
+    def to_dict(self, limit=None):
         """ Download the JSON results of the query """
         self.wait_for_completion()
-        return self.connection.download_dataset(self.qualified_name) \
+        return self.connection.download_dataset(self.qualified_name, limit) \
             if self.qualified_name else None
 
-    def to_dataframe(self, index=None):
+    def to_dataframe(self, index=None, limit=None):
         """ Convert the query result to a Pandas DataFrame """
         if not DataFrame:
             raise ImportError('Must execute `pip install pandas` to generate '
                               'Pandas DataFrames')
         else:
-            values = self.to_dict()
+            values = self.to_dict(limit)
             return DataFrame.from_records(values, index=index) \
                 if values else None
 
-    def _repr_html_(self):
+    def _repr_html_(self, limit=None):
         """ Generate a representation of this query as HTML """
-        return self.to_dataframe().to_html() \
-            if self.status not in self.nonterminal_states \
-            else '<{}, status={}>'.format(self.__class__.__name__, self.status)
+        if self.status in self.nonterminal_states:
+            return '<{}, status={}>'.format(
+                self.__class__.__name__, self.status)
+        else:
+            limit = limit or MyriaRelation.DisplayLimit
+            dataframe = self.to_dataframe(limit=limit)
+            footer = '<p>(First {} tuples shown)</p>'.format(limit) \
+                if limit and len(dataframe) > limit else ''
+            return dataframe.to_html() + footer
 
     def wait_for_completion(self, timeout=None):
         """ Wait up to <timeout> seconds for the query to complete """

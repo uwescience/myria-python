@@ -16,6 +16,7 @@ class MyriaRelation(MyriaFluentQuery):
     """ Represents a relation in the Myria system """
 
     DefaultConnection = MyriaConnection(hostname='localhost', port=8753)
+    DisplayLimit = 500
 
     def __init__(self, relation, connection=None, schema=None, **kwargs):
         """ Attach to an existing Myria relation, or create a new one
@@ -81,9 +82,10 @@ class MyriaRelation(MyriaFluentQuery):
                 **kwargs)
             return self
 
-    def to_dict(self):
+    def to_dict(self, limit=None):
         """ Download this relation as JSON """
-        return self.connection.download_dataset(self.qualified_name) \
+        return self.connection.download_dataset(self.qualified_name,
+                                                limit=limit) \
             if self.is_persisted else []
 
     def delete(self):
@@ -91,17 +93,21 @@ class MyriaRelation(MyriaFluentQuery):
         self.connection.delete_dataset(self.qualified_name)
         self._metadata = None
 
-    def to_dataframe(self, index=None):
+    def to_dataframe(self, index=None, limit=None):
         """ Convert the query result to a Pandas DataFrame """
         if not DataFrame:
             raise ImportError('Must execute `pip install pandas` to generate '
                               'Pandas DataFrames')
         else:
-            return DataFrame.from_records(self.to_dict(), index=index)
+            return DataFrame.from_records(self.to_dict(limit), index=index)
 
-    def _repr_html_(self):
+    def _repr_html_(self, limit=None):
         """ Generate a representation of this query as HTML """
-        return self.to_dataframe().to_html()
+        limit = limit or MyriaRelation.DisplayLimit
+        dataframe = self.to_dataframe(limit=limit)
+        footer = '<p>(First {} tuples shown)</p>'.format(limit) \
+            if limit and len(dataframe) > limit else ''
+        return dataframe.to_html() + footer
 
     @property
     def schema(self):
