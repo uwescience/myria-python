@@ -26,6 +26,7 @@ logging.basicConfig(level=logging.WARN)
 
 
 class MyriaConnection(object):
+
     """Contains a connection the Myria REST server."""
 
     _DEFAULT_HEADERS = {
@@ -151,7 +152,7 @@ class MyriaConnection(object):
                 if accept == JSON:
                     try:
                         return r.json()
-                    except ValueError:
+                    except ValueError as e:
                         raise MyriaError(
                             'Error %d: %s' % (r.status_code, r.text))
                 else:
@@ -309,7 +310,7 @@ class MyriaConnection(object):
         return self._make_request(POST, '/dataset', json.dumps(body))
 
     def execute_program(self, program, language="MyriaL", server=None,
-                        wait_for_completion=True):
+                        wait_for_completion=True, profile=False):
         """Execute the program in the specified language on Myria, polling
         its status until the query is finished. Returns the query status
         struct.
@@ -324,7 +325,7 @@ class MyriaConnection(object):
             rest_url=self._url_start,
             execution_url=self.execution_url)
         return raco.execute_query(raco.compile_program(
-            program, language))
+            program, language, profile))
 
     def compile_program(self, program, language="MyriaL", profile=False):
         """Get a compiled plan for a given program.
